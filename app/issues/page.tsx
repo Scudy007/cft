@@ -1,5 +1,6 @@
 import { Button } from "@radix-ui/themes";
 import Link from "next/link";
+export const dynamic = 'force-dynamic';
 
 const IssuesPage = () => {
   return (

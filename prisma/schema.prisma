@@ -6,21 +6,80 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-model Issue {
-  id          Int      @id @default(autoincrement())
-  title       String   @db.VarChar(255)
-  description String   @db.Text
-  status      Status   @default(OPEN)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 }
 
 enum Status {
   OPEN
-  ON_PROGESS
+  IN_PROGRESS 
+  RESOLVED
   CLOSED
+}
+
+enum Role {
+  L1
+  L2
+  L3
+  ADMIN
+}
+
+enum Criticality {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model User {
+  id             String     @id @default(cuid()) 
+  name           String?    
+  email          String?    @unique
+  password       String
+  role           Role       @default(L1)
+
+  assignedIssues Issue[]    @relation("AssignedIssues")
+  comments       Comment[]
+  logs           AuditLog[]
+}
+
+model Issue {
+  id               Int          @id @default(autoincrement())
+  title            String       @db.VarChar(255)  
+  system           String       @db.VarChar(255) 
+  category         String       @db.VarChar(255)  
+  description      String       @db.Text 
+  status           Status       @default(OPEN)
+  criticality      Criticality  @default(MEDIUM)
+  riskScore        Float?
+  discoveryDate    DateTime     @default(now())
+  deadline         DateTime?
+  assignedToUserId String?
+  assignedToUser   User?        @relation("AssignedIssues", fields: [assignedToUserId], references: [id])
+  comments         Comment[]    
+  history          AuditLog[]   
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  text      String   @db.Text
+  issueId   Int
+  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  issueId   Int
+  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String 
+  oldValue  String?
+  newValue  String? 
+  createdAt DateTime @default(now())
 }
