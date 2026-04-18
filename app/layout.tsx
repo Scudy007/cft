@@ -1,32 +1,24 @@
-import "./globals.css";
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import NavBar from "./NavBar";
-import "@radix-ui/themes/styles.css";
-import { Theme, ThemePanel } from "@radix-ui/themes";
+import './globals.css';
+import '@radix-ui/themes/styles.css';
+import { Theme } from '@radix-ui/themes';
+import Navbar from './Navbar';
 import AuthProvider from './auth/Provider';
+import QueryClientProvider from './QueryClientProvider'; 
 
-const inter = Inter({ subsets: ["latin"] });
-
-export const metadata: Metadata = {
-  title: "Issue Tracker",
-  description: "Anjas Issue Tracker",
-};
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
+export default function RootLayout({children,}: {
+  children: React.ReactNode
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <AuthProvider>
-          <Theme appearance="light" radius="large">
-            <NavBar />
-            <main className="p-5">{children}</main>
-          </Theme>
-        </AuthProvider>
+      <body>
+        <QueryClientProvider>
+          <AuthProvider>
+            <Theme>
+              <Navbar />
+              <main className='p-5'>{children}</main>
+            </Theme>
+          </AuthProvider>
+        </QueryClientProvider>
       </body>
     </html>
   );

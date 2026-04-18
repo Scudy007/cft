@@ -81,5 +81,6 @@ model AuditLog {
   action    String 
   oldValue  String?
   newValue  String? 
+  comment   String?
   createdAt DateTime @default(now())
 }

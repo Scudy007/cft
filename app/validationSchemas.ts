@@ -5,4 +5,5 @@ export const createIssueSchema = z.object({
     description: z.string().min(1, "Description is required."),
     system: z.string().min(1, "System is required.").max(255),
     category: z.string().min(1, "Category is required.").max(255),
+    assignedToUserId: z.string().min(1).max(255).optional().nullable()
 });

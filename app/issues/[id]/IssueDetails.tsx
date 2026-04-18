@@ -44,7 +44,6 @@ const IssueDetails = ({ issue }: { issue: any }) => {
         </Card>
       </Grid>
       
-      {/* Описание */}
       <Card className="prose max-w-full" mt="4">
         <Heading size="3" mb="2">Описание уязвимости</Heading>
         <Text as="p">{issue.description}</Text>
