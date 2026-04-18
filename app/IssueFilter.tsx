@@ -1,68 +1,55 @@
 "use client";
 
 import { Status, Criticality } from "@prisma/client";
-import { Select, Flex } from "@radix-ui/themes";
+import { Select, Flex, Text, Switch } from "@radix-ui/themes";
 import { useRouter, useSearchParams } from "next/navigation";
 
-const statuses: { label: string; value: Status | "ALL" }[] = [
-  { label: "Все статусы", value: "ALL" },
-  { label: "Открытые", value: "OPEN" },
-  { label: "В работе", value: "IN_PROGRESS" },
-  { label: "Решенные", value: "RESOLVED" },
-  { label: "Закрытые", value: "CLOSED" },
-];
-
-const criticalities: { label: string; value: Criticality | "ALL" }[] = [
-  { label: "Любая критичность", value: "ALL" },
-  { label: "CRITICAL", value: "CRITICAL" },
-  { label: "HIGH", value: "HIGH" },
-  { label: "MEDIUM", value: "MEDIUM" },
-  { label: "LOW", value: "LOW" },
-];
-
-const IssueFilter = () => {
+const IssueFilter = ({ currentUserId }: { currentUserId?: string }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const handleFilterChange = (value: string, paramName: string) => {
+  const updateParams = (name: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (value === "ALL") {
-      params.delete(paramName);
-    } else {
-      params.set(paramName, value);
-    }
+    if (value === "ALL" || !value) params.delete(name);
+    else params.set(name, value);
     router.push(`/?${params.toString()}`);
   };
 
   return (
-    <Flex gap="3" mb="5">
+    <Flex gap="4" mb="5" align="center" wrap="wrap">
       <Select.Root 
         defaultValue={searchParams.get("status") || "ALL"} 
-        onValueChange={(val) => handleFilterChange(val, "status")}
+        onValueChange={(val) => updateParams("status", val)}
       >
-        <Select.Trigger placeholder="Фильтр по статусу..." />
+        <Select.Trigger placeholder="Статус" />
         <Select.Content>
-          {statuses.map((status) => (
-            <Select.Item key={status.value} value={status.value}>
-              {status.label}
-            </Select.Item>
-          ))}
+          <Select.Item value="ALL">Все статусы</Select.Item>
+          {Object.values(Status).map(s => <Select.Item key={s} value={s}>{s}</Select.Item>)}
         </Select.Content>
       </Select.Root>
 
       <Select.Root 
         defaultValue={searchParams.get("criticality") || "ALL"} 
-        onValueChange={(val) => handleFilterChange(val, "criticality")}
+        onValueChange={(val) => updateParams("criticality", val)}
       >
-        <Select.Trigger placeholder="Фильтр по риску..." />
+        <Select.Trigger placeholder="Критичность" />
         <Select.Content>
-          {criticalities.map((crit) => (
-            <Select.Item key={crit.value} value={crit.value}>
-              {crit.label}
-            </Select.Item>
-          ))}
+          <Select.Item value="ALL">Любой риск</Select.Item>
+          {Object.values(Criticality).map(c => <Select.Item key={c} value={c}>{c}</Select.Item>)}
         </Select.Content>
       </Select.Root>
+
+      {currentUserId && (
+        <Flex align="center" gap="2">
+          <Text size="2">Только мои</Text>
+          <Switch 
+            checked={searchParams.get("assignedToUserId") === currentUserId}
+            onCheckedChange={(checked) => 
+              updateParams("assignedToUserId", checked ? currentUserId : "ALL")
+            }
+          />
+        </Flex>
+      )}
     </Flex>
   );
 };

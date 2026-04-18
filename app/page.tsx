@@ -1,14 +1,22 @@
 import { prisma } from "@/prisma/client";
-import { Table, Badge, Link as RadixLink, Flex, Heading, Text } from "@radix-ui/themes";
+import { Table, Badge, Link as RadixLink, Flex, Heading, Text, Box } from "@radix-ui/themes";
 import Link from "next/link";
 import IssueFilter from "./IssueFilter";
 import { Status, Criticality } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "./api/auth/[...nextauth]/route";
 
 interface Props {
-  searchParams: { status?: Status; criticality?: Criticality };
+  searchParams: { 
+    status?: Status; 
+    criticality?: Criticality;
+    assignedToUserId?: string;
+  };
 }
 
 export default async function Home({ searchParams }: Props) {
+  const session = await getServerSession(authOptions);
+  const currentUserId = (session?.user as any)?.id;
   const statuses = Object.values(Status);
   const status = statuses.includes(searchParams.status as Status) ? searchParams.status : undefined;
   const criticalities = Object.values(Criticality);
@@ -18,6 +26,7 @@ export default async function Home({ searchParams }: Props) {
     where: {
       status,
       criticality,
+      assignedToUserId: searchParams.assignedToUserId,
     },
     orderBy: { createdAt: "desc" },
     include: {
@@ -26,11 +35,12 @@ export default async function Home({ searchParams }: Props) {
   });
 
   return (
-    <div>
+    <Box>
       <Flex justify="between" align="center" mb="5">
         <Heading>Дашборд уязвимостей</Heading>
       </Flex>
-      <IssueFilter />
+      <IssueFilter currentUserId={currentUserId} />
+
       <Table.Root variant="surface">
         <Table.Header>
           <Table.Row>
@@ -50,17 +60,27 @@ export default async function Home({ searchParams }: Props) {
                 <Link href={`/issues/${issue.id}`} passHref legacyBehavior>
                   <RadixLink weight="bold">{issue.title}</RadixLink>
                 </Link>
-        
+                
                 <div className="block md:hidden mt-1">
                   <Flex gap="2">
-                    <Badge color={issue.status === 'CLOSED' ? 'green' : 'blue'}>{issue.status}</Badge>
-                    <Badge color={issue.criticality === 'CRITICAL' ? 'red' : 'gray'}>{issue.criticality}</Badge>
+                    <Badge color={issue.status === 'CLOSED' ? 'green' : 'blue'}>
+                      {issue.status}
+                    </Badge>
+                    <Badge color={
+                      issue.criticality === 'CRITICAL' ? 'red' : 
+                      issue.criticality === 'HIGH' ? 'orange' : 
+                      issue.criticality === 'MEDIUM' ? 'yellow' : 'gray'
+                    }>
+                      {issue.criticality}
+                    </Badge>
                   </Flex>
                 </div>
               </Table.Cell>
               
               <Table.Cell className="hidden md:table-cell">
-                <Badge color={issue.status === 'CLOSED' ? 'green' : 'blue'}>{issue.status}</Badge>
+                <Badge color={issue.status === 'CLOSED' ? 'green' : 'blue'}>
+                  {issue.status}
+                </Badge>
               </Table.Cell>
               
               <Table.Cell className="hidden md:table-cell">
@@ -98,6 +118,6 @@ export default async function Home({ searchParams }: Props) {
           Задачи по заданным фильтрам не найдены.
         </Text>
       )}
-    </div>
+    </Box>
   );
 }

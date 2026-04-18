@@ -1,17 +1,19 @@
 "use client";
-import { Button, Callout, TextField, Select } from "@radix-ui/themes";
-import { useForm, Controller } from "react-hook-form";
-import axios from "axios";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { createIssueSchema } from "@/app/validationSchemas";
-import { z } from "zod";
+
 import ErrorMessage from "@/app/components/ErrorMessage";
 import Spinner from "@/app/components/Spinner";
+import { createIssueSchema } from "@/app/validationSchemas";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Issue } from "@prisma/client";
-import dynamic from "next/dynamic";
+import { Button, Callout, Flex, Grid, Select, TextField, Box, Heading, Text, Card,Separator } from "@radix-ui/themes";
+import axios from "axios";
 import "easymde/dist/easymde.min.css";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
+import RiskCalculator, { RiskData } from "./RiskCalculator";
 
 const SimpleMDE = dynamic(() => import("react-simplemde-editor"), { ssr: false });
 
@@ -19,90 +21,134 @@ type IssueFormData = z.infer<typeof createIssueSchema>;
 
 const IssueForm = ({ issue }: { issue?: Issue }) => {
   const router = useRouter();
-  const { register, control, handleSubmit, formState: { errors } } = useForm<IssueFormData>({
-    resolver: zodResolver(createIssueSchema),
-    defaultValues: issue || {}
-  });
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setSubmitting] = useState(false);
+
+  const [riskData, setRiskData] = useState<RiskData>({
+    cvssAV: issue?.cvssAV || "NETWORK",
+    cvssAC: issue?.cvssAC || "LOW",
+    cvssPR: issue?.cvssPR || "NONE",
+    cvssUI: issue?.cvssUI || "NONE",
+    cvssS: issue?.cvssS || "UNCHANGED",
+    cvssC: issue?.cvssC || "NONE",
+    cvssI: issue?.cvssI || "NONE",
+    cvssA: issue?.cvssA || "NONE",
+    dreadDamage: issue?.dreadDamage || 1,
+    dreadRepro: issue?.dreadRepro || 1,
+    dreadExploit: issue?.dreadExploit || 1,
+    dreadAffected: issue?.dreadAffected || 1,
+    dreadDiscover: issue?.dreadDiscover || 1,
+  });
+
+  const { register, control, handleSubmit, formState: { errors } } = useForm<IssueFormData>({
+    resolver: zodResolver(createIssueSchema),
+    defaultValues: {
+      title: issue?.title,
+      description: issue?.description,
+      system: issue?.system,
+      category: issue?.category,
+      assignedToUserId: issue?.assignedToUserId
+    }
+  });
 
   const onSubmit = handleSubmit(async (data) => {
     try {
       setSubmitting(true);
+      const payload = { ...data, ...riskData };
+
       if (issue) {
-        await axios.patch(`/api/issues/${issue.id}`, data);
+        await axios.patch(`/api/issues/${issue.id}`, payload);
       } else {
-        await axios.post("/api/issues", data);
+        await axios.post("/api/issues", payload);
       }
+      
       router.push("/issues");
       router.refresh();
     } catch (err) {
-      setError("Произошла ошибка при сохранении.");
+      setError("Произошла ошибка при сохранении. Проверьте заполнение всех полей.");
     } finally {
       setSubmitting(false);
     }
   });
 
   return (
-    <div className="max-w-xl">
+    <Box className="max-w-3xl mx-auto py-5">
       {error && (
         <Callout.Root color="red" className="mb-5">
           <Callout.Text>{error}</Callout.Text>
         </Callout.Root>
       )}
-      <form className="space-y-3" onSubmit={onSubmit}>
-        <TextField.Root>
-          <TextField.Input placeholder="Название аудита" {...register("title")} />
-        </TextField.Root>
-        <ErrorMessage>{errors.title?.message}</ErrorMessage>
 
-        <TextField.Root>
-          <TextField.Input placeholder="Система" {...register("system")} />
-        </TextField.Root>
-        <ErrorMessage>{errors.system?.message}</ErrorMessage>
+      <form onSubmit={onSubmit} className="space-y-6">
+        <Card size="3">
+          <Flex direction="column" gap="4">
+            <Heading size="4">1. Информация об инциденте</Heading>
+            
+            <Box>
+              <Text as="label" size="2" weight="bold" mb="1" display="block">Название задачи</Text>
+              <TextField.Root>
+                <TextField.Input placeholder="Например: SQL Injection в модуле авторизации" {...register("title")} />
+              </TextField.Root>
+              <ErrorMessage>{errors.title?.message}</ErrorMessage>
+            </Box>
 
-        <TextField.Root>
-          <TextField.Input
-            placeholder="Категория (например, Web, Mobile, Network)"
-            {...register("category")}
+            <Grid columns="2" gap="4">
+              <Box>
+                <Text as="label" size="2" weight="bold" mb="1" display="block">Целевая система</Text>
+                <TextField.Root>
+                  <TextField.Input placeholder="iOS, WebApp, API..." {...register("system")} />
+                </TextField.Root>
+                <ErrorMessage>{errors.system?.message}</ErrorMessage>
+              </Box>
+              <Box>
+                <Text as="label" size="2" weight="bold" mb="1" display="block">Категория</Text>
+                <TextField.Root>
+                  <TextField.Input placeholder="Vulnerability, Bug..." {...register("category")} />
+                </TextField.Root>
+                <ErrorMessage>{errors.category?.message}</ErrorMessage>
+              </Box>
+            </Grid>
+
+            <Box>
+              <Text as="label" size="2" weight="bold" mb="1" display="block">Описание нарушения</Text>
+              <Controller
+                name="description"
+                control={control}
+                render={({ field }) => (
+                  <SimpleMDE placeholder="Опишите детали уязвимости..." {...field} />
+                )}
+              />
+              <ErrorMessage>{errors.description?.message}</ErrorMessage>
+            </Box>
+          </Flex>
+        </Card>
+
+        <Box>
+          <Heading size="4" mb="3">2. Оценка критичности</Heading>
+        
+          <RiskCalculator 
+            data={riskData} 
+            onChange={setRiskData} 
+            readonly={false} 
           />
-        </TextField.Root>
-        <ErrorMessage>{errors.category?.message}</ErrorMessage>
+        </Box>
 
-        <Controller
-          name="criticality"
-          control={control}
-          render={({ field }) => (
-            <Select.Root
-              onValueChange={field.onChange}
-              defaultValue={field.value || "MEDIUM"}
-            >
-              <Select.Trigger placeholder="Критичность" />
-              <Select.Content>
-                <Select.Item value="LOW">Low</Select.Item>
-                <Select.Item value="MEDIUM">Medium</Select.Item>
-                <Select.Item value="HIGH">High</Select.Item>
-                <Select.Item value="CRITICAL">Critical</Select.Item>
-              </Select.Content>
-            </Select.Root>
-          )}
-        />
-        <ErrorMessage>{errors.criticality?.message}</ErrorMessage>
+        <Separator size="4" />
 
-        <Controller
-          name="description"
-          control={control}
-          render={({ field }) => (
-            <SimpleMDE placeholder="Описание нарушения" {...field} />
-          )}
-        />
-        <ErrorMessage>{errors.description?.message}</ErrorMessage>
-
-        <Button disabled={isSubmitting}>
-          {issue ? "Обновить" : "Создать"} {isSubmitting && <Spinner />}
-        </Button>
+        <Box>
+          <Button 
+            disabled={isSubmitting} 
+            size="3" 
+            variant="solid" 
+            className="w-full"
+            style={{ cursor: 'pointer' }}
+          >
+            {issue ? "Сохранить изменения" : "Зарегистрировать уязвимость"}
+            {isSubmitting && <Spinner />}
+          </Button>
+        </Box>
       </form>
-    </div>
+    </Box>
   );
 };
 

@@ -60,6 +60,25 @@ model Issue {
   history          AuditLog[]   
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
+
+  cvssScore        Float?   @default(0)
+  dreadScore       Float?   @default(0)
+  cvssVector       String?
+
+  cvssAV           AttackVector?       @default(NETWORK)
+  cvssAC           AttackComplexity?   @default(LOW)
+  cvssPR           PrivilegesRequired? @default(NONE)
+  cvssUI           UserInteraction?    @default(NONE)
+  cvssS            Scope?              @default(UNCHANGED)
+  cvssC            CIA?                @default(NONE)
+  cvssI            CIA?                @default(NONE)
+  cvssA            CIA?                @default(NONE)
+
+  dreadDamage      Int @default(1)
+  dreadRepro       Int @default(1)
+  dreadExploit     Int @default(1)
+  dreadAffected    Int @default(1)
+  dreadDiscover    Int @default(1)
 }
 
 model Comment {
@@ -83,4 +102,38 @@ model AuditLog {
   newValue  String? 
   comment   String?
   createdAt DateTime @default(now())
+}
+
+enum AttackVector {
+  NETWORK
+  ADJACENT
+  LOCAL
+  PHYSICAL
+}
+
+enum AttackComplexity {
+  LOW
+  HIGH
+}
+
+enum PrivilegesRequired {
+  NONE
+  LOW
+  HIGH
+}
+
+enum UserInteraction {
+  NONE
+  REQUIRED
+}
+
+enum Scope {
+  UNCHANGED
+  CHANGED
+}
+
+enum CIA {
+  NONE
+  LOW
+  HIGH
 }
