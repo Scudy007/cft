@@ -1,10 +1,11 @@
 import { prisma } from "@/prisma/client";
-import { Table, Badge, Link as RadixLink, Flex, Heading, Text, Box } from "@radix-ui/themes";
+import { Table, Badge, Link as RadixLink, Flex, Heading, Text, Card, Grid, Box } from "@radix-ui/themes";
 import Link from "next/link";
 import IssueFilter from "./IssueFilter";
 import { Status, Criticality } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]/route";
+import DashboardCharts from "./DashboardCharts";
 
 interface Props {
   searchParams: { 
@@ -17,6 +18,7 @@ interface Props {
 export default async function Home({ searchParams }: Props) {
   const session = await getServerSession(authOptions);
   const currentUserId = (session?.user as any)?.id;
+  
   const statuses = Object.values(Status);
   const status = statuses.includes(searchParams.status as Status) ? searchParams.status : undefined;
   const criticalities = Object.values(Criticality);
@@ -29,27 +31,49 @@ export default async function Home({ searchParams }: Props) {
       assignedToUserId: searchParams.assignedToUserId,
     },
     orderBy: { createdAt: "desc" },
-    include: {
-      assignedToUser: true, 
-    },
+    include: { assignedToUser: true },
   });
 
+  const totalCount = await prisma.issue.count();
+  const openCount = await prisma.issue.count({ where: { status: 'OPEN' } });
+  const criticalCount = await prisma.issue.count({ where: { criticality: 'CRITICAL' } });
+
   return (
-    <Box>
-      <Flex justify="between" align="center" mb="5">
-        <Heading>Дашборд уязвимостей</Heading>
+    <Flex direction="column" gap="4" p="4">
+      <Flex justify="between" align="center">
+        <Heading size="8">Дашборд безопасности</Heading>
       </Flex>
+
+      <Grid columns={{ initial: '1', sm: '3' }} gap="4">
+        <Card variant="surface" color="gray">
+          <Text as="div" size="2" color="gray">Всего замечаний</Text>
+          <Text as="div" size="6" weight="bold">{totalCount}</Text>
+        </Card>
+        <Card variant="surface" color="blue">
+          <Text as="div" size="2" color="blue">В работе (Open)</Text>
+          <Text as="div" size="6" weight="bold">{openCount}</Text>
+        </Card>
+        <Card variant="surface" color="red">
+          <Text as="div" size="2" color="red">Критический риск</Text>
+          <Text as="div" size="6" weight="bold">{criticalCount}</Text>
+        </Card>
+      </Grid>
+
+      <DashboardCharts />
+
+      <Heading size="4" mt="4">Детальный список уязвимостей</Heading>
+      
       <IssueFilter currentUserId={currentUserId} />
 
       <Table.Root variant="surface">
         <Table.Header>
           <Table.Row>
-            <Table.ColumnHeaderCell>Уязвимость / Таска</Table.ColumnHeaderCell>
+            <Table.ColumnHeaderCell>Уязвимость</Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell className="hidden md:table-cell">Статус</Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell className="hidden md:table-cell">Критичность</Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell className="hidden md:table-cell">Система</Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell className="hidden md:table-cell">Ответственный</Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell>Создано</Table.ColumnHeaderCell>
+            <Table.ColumnHeaderCell>Дата</Table.ColumnHeaderCell>
           </Table.Row>
         </Table.Header>
 
@@ -114,10 +138,8 @@ export default async function Home({ searchParams }: Props) {
       </Table.Root>
 
       {issues.length === 0 && (
-        <Text mt="4" as="p" color="gray" align="center">
-          Задачи по заданным фильтрам не найдены.
-        </Text>
+        <Text mt="4" color="gray" align="center">Задачи по заданным фильтрам не найдены.</Text>
       )}
-    </Box>
+    </Flex>
   );
 }

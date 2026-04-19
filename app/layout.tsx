@@ -1,7 +1,7 @@
 import './globals.css';
 import '@radix-ui/themes/styles.css';
 import { Theme } from '@radix-ui/themes';
-import Navbar from './Navbar';
+import Navbar from './NavBar';
 import AuthProvider from './auth/Provider';
 import QueryClientProvider from './QueryClientProvider'; 
 
