@@ -1,5 +1,5 @@
 import { prisma } from "@/prisma/client";
-import { Table, Badge, Link as RadixLink, Flex, Heading, Text, Card, Grid, Box } from "@radix-ui/themes";
+import { Table, Badge, Link as RadixLink, Flex, Heading, Text, Card, Grid, Button } from "@radix-ui/themes";
 import Link from "next/link";
 import IssueFilter from "./IssueFilter";
 import { Status, Criticality } from "@prisma/client";
@@ -12,6 +12,7 @@ interface Props {
     status?: Status; 
     criticality?: Criticality;
     assignedToUserId?: string;
+    orderBy?: string; 
   };
 }
 
@@ -24,19 +25,37 @@ export default async function Home({ searchParams }: Props) {
   const criticalities = Object.values(Criticality);
   const criticality = criticalities.includes(searchParams.criticality as Criticality) ? searchParams.criticality : undefined;
 
+  let orderByObj: any = { createdAt: 'desc' };
+  if (searchParams.orderBy === 'cvss') {
+    orderByObj = { cvssScore: 'desc' };
+  } else if (searchParams.orderBy === 'dread') {
+    orderByObj = { dreadScore: 'desc' };
+  }
+
   const issues = await prisma.issue.findMany({
     where: {
       status,
       criticality,
       assignedToUserId: searchParams.assignedToUserId,
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: orderByObj,
     include: { assignedToUser: true },
   });
 
   const totalCount = await prisma.issue.count();
   const openCount = await prisma.issue.count({ where: { status: 'OPEN' } });
   const criticalCount = await prisma.issue.count({ where: { criticality: 'CRITICAL' } });
+
+  const buildSortUrl = (order: string) => {
+    const params = new URLSearchParams();
+    if (searchParams.status) params.append("status", searchParams.status);
+    if (searchParams.criticality) params.append("criticality", searchParams.criticality);
+    if (searchParams.assignedToUserId) params.append("assignedToUserId", searchParams.assignedToUserId);
+    params.append("orderBy", order);
+    return `/?${params.toString()}`;
+  };
+
+  const isDateSort = !searchParams.orderBy || searchParams.orderBy === 'new';
 
   return (
     <Flex direction="column" gap="4" p="4">
@@ -63,7 +82,25 @@ export default async function Home({ searchParams }: Props) {
 
       <Heading size="4" mt="4">Детальный список уязвимостей</Heading>
       
-      <IssueFilter currentUserId={currentUserId} />
+      <Flex direction={{ initial: 'column', md: 'row' }} justify="between" align="start" gap="4" mb="2">
+        <IssueFilter currentUserId={currentUserId} />
+        
+        <Flex gap="3" align="center" wrap="wrap">
+          <Text size="2" weight="bold" color="gray">Сортировка:</Text>
+          
+          <Button variant={isDateSort ? 'solid' : 'soft'} asChild>
+            <Link href={buildSortUrl('new')}>По дате</Link>
+          </Button>
+          
+          <Button color="red" variant={searchParams.orderBy === 'cvss' ? 'solid' : 'soft'} asChild>
+            <Link href={buildSortUrl('cvss')}>По CVSS Score</Link>
+          </Button>
+
+          <Button color="orange" variant={searchParams.orderBy === 'dread' ? 'solid' : 'soft'} asChild>
+            <Link href={buildSortUrl('dread')}>По DREAD Score</Link>
+          </Button>
+        </Flex>
+      </Flex>
 
       <Table.Root variant="surface">
         <Table.Header>
@@ -138,7 +175,7 @@ export default async function Home({ searchParams }: Props) {
       </Table.Root>
 
       {issues.length === 0 && (
-        <Text mt="4" color="gray" align="center">Задачи по заданным фильтрам не найдены.</Text>
+        <Text mt="4" color="gray" align="center" as="p">Задачи по заданным фильтрам не найдены.</Text>
       )}
     </Flex>
   );
