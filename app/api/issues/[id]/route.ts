@@ -80,6 +80,23 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       status: body.status,
       criticality: body.criticality,
       assignedToUserId: assignedToUserId === "unassigned" ? null : assignedToUserId,
+      
+      cvssScore: body.cvssScore,
+      dreadScore: body.dreadScore,
+      dreadDamage: body.dreadDamage,
+      dreadRepro: body.dreadRepro,
+      dreadExploit: body.dreadExploit,
+      dreadAffected: body.dreadAffected,
+      dreadDiscover: body.dreadDiscover,
+      cvssAV: body.cvssAV,
+      cvssAC: body.cvssAC,
+      cvssPR: body.cvssPR,
+      cvssUI: body.cvssUI,
+      cvssS: body.cvssS,
+      cvssC: body.cvssC,
+      cvssI: body.cvssI,
+      cvssA: body.cvssA,
+
       history: logsToCreate.length > 0 ? { create: logsToCreate } : undefined
     }
   });

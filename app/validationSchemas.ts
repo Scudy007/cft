@@ -19,4 +19,6 @@ export const createIssueSchema = z.object({
     cvssC: z.string().optional(),
     cvssI: z.string().optional(),
     cvssA: z.string().optional(),
+    cvssScore: z.number().optional().nullable(),
+    dreadScore: z.number().optional().nullable(),
 });
