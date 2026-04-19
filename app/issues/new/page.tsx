@@ -1,16 +1,19 @@
-import dynamic from "next/dynamic";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import IssueForm from "../_components/IssueForm";
 
-const IssueForm = dynamic(
-  () => import("@/app/issues/_components/IssueForm"),
-  { 
-    ssr: false
+const NewIssuePage = async () => {
+  const session = await getServerSession(authOptions);
+  const userRole = (session?.user as any)?.role;
+
+  if (!session || userRole === "L1") {
+    redirect("/issues");
   }
-);
 
-const NewIssuePage = () => {
   return (
-    <div className="max-w-xl">
-      <IssueForm /> 
+    <div className="w-full">
+      <IssueForm />
     </div>
   );
 };

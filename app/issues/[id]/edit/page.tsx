@@ -23,7 +23,7 @@ const EditIssuePage = async ({ params }: Props) => {
   if (!issue) notFound();
 
   return (
-    <div className="max-w-xl">
+    <div className="w-full">
       <IssueForm issue={issue} />
     </div>
   );

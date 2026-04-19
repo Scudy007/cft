@@ -52,9 +52,10 @@ export default function DashboardCharts() {
   }));
 
   return (
-    <Flex gap="5" mb="5" direction={{ initial: 'column', md: 'row' }}>
-      <Card size="2" style={{ flex: 1, height: '350px' }}>
-        <Heading size="4" mb="4">Распределение по статусам</Heading>
+    <Flex gap="5" direction={{ initial: 'column', md: 'row' }}>
+      
+      <Card size="3" variant="surface" className="shadow-sm hover:shadow-md transition-shadow" style={{ flex: 1, height: '350px' }}>
+        <Heading size="4" mb="4" color="gray">Распределение по статусам</Heading>
         <ResponsiveContainer width="100%" height="85%">
           <PieChart>
             <Pie
@@ -77,8 +78,8 @@ export default function DashboardCharts() {
         </ResponsiveContainer>
       </Card>
 
-      <Card size="2" style={{ flex: 1, height: '350px' }}>
-        <Heading size="4" mb="4">Уровень критичности</Heading>
+      <Card size="3" variant="surface" className="shadow-sm hover:shadow-md transition-shadow" style={{ flex: 1, height: '350px' }}>
+        <Heading size="4" mb="4" color="gray">Уровень критичности</Heading>
         <ResponsiveContainer width="100%" height="85%">
           <BarChart data={critData}>
             <XAxis dataKey="name" />
@@ -88,6 +89,7 @@ export default function DashboardCharts() {
           </BarChart>
         </ResponsiveContainer>
       </Card>
+      
     </Flex>
   );
 }

@@ -13,9 +13,9 @@ export default function RootLayout({children,}: {
       <body>
         <QueryClientProvider>
           <AuthProvider>
-            <Theme>
+            <Theme appearance="light" accentColor="indigo" radius="large">
               <Navbar />
-              <main className='p-5'>{children}</main>
+              <main className="p-5">{children}</main>
             </Theme>
           </AuthProvider>
         </QueryClientProvider>

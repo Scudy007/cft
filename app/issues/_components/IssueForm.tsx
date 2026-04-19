@@ -5,7 +5,7 @@ import Spinner from "@/app/components/Spinner";
 import { createIssueSchema } from "@/app/validationSchemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Issue } from "@prisma/client";
-import { Button, Callout, Flex, Grid, Select, TextField, Box, Heading, Text, Card, Separator } from "@radix-ui/themes";
+import { Button, Callout, Flex, Grid, TextField, Box, Heading, Text, Card } from "@radix-ui/themes";
 import axios from "axios";
 import "easymde/dist/easymde.min.css";
 import dynamic from "next/dynamic";
@@ -82,81 +82,93 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
   });
 
   return (
-    <Box className="max-w-3xl mx-auto py-5">
+    <Box className="max-w-7xl mx-auto py-6 px-4" style={{ width: "100%" }}>
       {error && (
         <Callout.Root color="red" className="mb-5">
           <Callout.Text>{error}</Callout.Text>
         </Callout.Root>
       )}
 
-      <form onSubmit={onSubmit} className="space-y-6">
-        <Card size="3">
-          <Flex direction="column" gap="4">
-            <Heading size="4">1. Информация об инциденте</Heading>
-            
-            <Box>
-              <Text as="label" size="2" weight="bold" mb="1" display="block">Название задачи</Text>
-              <TextField.Root>
-                <TextField.Input placeholder="Например: SQL Injection в модуле авторизации" {...register("title")} />
-              </TextField.Root>
-              <ErrorMessage>{errors.title?.message}</ErrorMessage>
-            </Box>
+      <form onSubmit={onSubmit} style={{ width: "100%" }}>
+        <Grid columns={{ initial: "1", lg: "1.6fr 1fr" }} gap="6" align="start">
+          
+          <Flex direction="column" gap="5" style={{ width: "100%" }}>
+            <Card size="4" variant="surface" className="shadow-sm" style={{ width: "100%" }}>
+              <Heading size="5" mb="5" color="gray">1. Информация об инциденте</Heading>
+              
+              <Flex direction="column" gap="4">
+                <Box>
+                  <Text as="label" size="2" weight="bold" mb="2" display="block">Название задачи</Text>
+                  <TextField.Root size="3">
+                    <TextField.Input placeholder="Например: SQL Injection в модуле авторизации" {...register("title")} />
+                  </TextField.Root>
+                  <ErrorMessage>{errors.title?.message}</ErrorMessage>
+                </Box>
 
-            <Grid columns="2" gap="4">
-              <Box>
-                <Text as="label" size="2" weight="bold" mb="1" display="block">Целевая система</Text>
-                <TextField.Root>
-                  <TextField.Input placeholder="iOS, WebApp, API..." {...register("system")} />
-                </TextField.Root>
-                <ErrorMessage>{errors.system?.message}</ErrorMessage>
-              </Box>
-              <Box>
-                <Text as="label" size="2" weight="bold" mb="1" display="block">Категория</Text>
-                <TextField.Root>
-                  <TextField.Input placeholder="Vulnerability, Bug..." {...register("category")} />
-                </TextField.Root>
-                <ErrorMessage>{errors.category?.message}</ErrorMessage>
-              </Box>
-            </Grid>
+                <Grid columns="2" gap="4">
+                  <Box>
+                    <Text as="label" size="2" weight="bold" mb="2" display="block">Целевая система</Text>
+                    <TextField.Root size="3">
+                      <TextField.Input placeholder="iOS, WebApp, API..." {...register("system")} />
+                    </TextField.Root>
+                    <ErrorMessage>{errors.system?.message}</ErrorMessage>
+                  </Box>
+                  <Box>
+                    <Text as="label" size="2" weight="bold" mb="2" display="block">Категория</Text>
+                    <TextField.Root size="3">
+                      <TextField.Input placeholder="Vulnerability, Bug..." {...register("category")} />
+                    </TextField.Root>
+                    <ErrorMessage>{errors.category?.message}</ErrorMessage>
+                  </Box>
+                </Grid>
 
-            <Box>
-              <Text as="label" size="2" weight="bold" mb="1" display="block">Описание нарушения</Text>
-              <Controller
-                name="description"
-                control={control}
-                render={({ field }) => (
-                  <SimpleMDE placeholder="Опишите детали уязвимости..." {...field} />
-                )}
-              />
-              <ErrorMessage>{errors.description?.message}</ErrorMessage>
-            </Box>
+                <Box className="mt-2">
+                  <Text as="label" size="2" weight="bold" mb="2" display="block">Описание нарушения (Markdown)</Text>
+                  <Box className="prose-editor">
+                    <Controller
+                      name="description"
+                      control={control}
+                      render={({ field }) => (
+                        <SimpleMDE placeholder="Опишите детали уязвимости, шаги воспроизведения, логи..." {...field} />
+                      )}
+                    />
+                  </Box>
+                  <ErrorMessage>{errors.description?.message}</ErrorMessage>
+                </Box>
+              </Flex>
+            </Card>
           </Flex>
-        </Card>
 
-        <Box>
-          <Heading size="4" mb="3">2. Оценка критичности</Heading>
-        
-          <RiskCalculator 
-            data={riskData} 
-            onChange={setRiskData} 
-            readonly={false} 
-          />
-        </Box>
+          <Flex direction="column" gap="5" style={{ width: "100%" }}>
+            <Box style={{ width: "100%" }}>
+              <Heading size="5" mb="4" ml="1" color="gray">2. Оценка критичности</Heading>
+              <RiskCalculator 
+                data={riskData} 
+                onChange={setRiskData} 
+                readonly={false} 
+              />
+            </Box>
 
-        <Separator size="4" />
+            <Card size="3" variant="surface" className="bg-slate-50 border-slate-200 mt-2" style={{ width: "100%" }}>
+              <Flex direction="column" gap="3">
+                <Text size="2" color="gray">
+                  Проверьте итоговые баллы перед сохранением. Задача будет доступна всем аналитикам на дашборде.
+                </Text>
+                <Button 
+                  disabled={isSubmitting} 
+                  size="3" 
+                  variant="solid" 
+                  color="blue"
+                  className="w-full cursor-pointer shadow-sm hover:shadow-md transition-all"
+                >
+                  {issue ? "Сохранить изменения" : "Зарегистрировать уязвимость"}
+                  {isSubmitting && <Spinner />}
+                </Button>
+              </Flex>
+            </Card>
+          </Flex>
 
-        <Box>
-          <Button 
-            disabled={isSubmitting} 
-            size="3" 
-            variant="solid" 
-            className="w-full"
-            style={{ cursor: 'pointer' }}
-          >
-            {issue ? "Сохранить изменения" : "Зарегистрировать уязвимость"}
-            {isSubmitting && <Spinner />}
-          </Button>
-        </Box>
+        </Grid>
       </form>
     </Box>
   );

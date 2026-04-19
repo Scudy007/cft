@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Box, Flex, Heading, Text, Card, TextField, Select, Table, Badge, Button } from '@radix-ui/themes';
 
 export interface AuditIssue {
   id: number;
@@ -18,7 +20,6 @@ export default function IssuesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Состояния для фильтров
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [criticalityFilter, setCriticalityFilter] = useState('ALL');
@@ -40,7 +41,6 @@ export default function IssuesPage() {
       });
   }, []);
 
-  // Логика фильтрации данных
   const filteredIssues = issues.filter((issue) => {
     const matchesSearch = issue.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           issue.system.toLowerCase().includes(searchTerm.toLowerCase());
@@ -50,104 +50,127 @@ export default function IssuesPage() {
     return matchesSearch && matchesStatus && matchesCriticality;
   });
 
-  if (isLoading) return <div className="p-10 text-center text-gray-500">Загрузка данных...</div>;
-  if (error) return <div className="p-10 text-red-500 text-center">{error}</div>;
+  if (isLoading) return <Box className="p-10 text-center text-gray-500">Загрузка данных...</Box>;
+  if (error) return <Box className="p-10 text-red-500 text-center">{error}</Box>;
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Результаты аудитов</h1>
-        <div className="text-sm text-gray-500">
-          Найдено записей: {filteredIssues.length}
-        </div>
-      </div>
+    <Box className="max-w-7xl mx-auto py-6 px-4">
+      <Flex justify="between" align="center" mb="5">
+        <Heading size="7" color="gray">Результаты аудитов</Heading>
+        <Text size="2" color="gray">
+          Найдено записей: <Text weight="bold">{filteredIssues.length}</Text>
+        </Text>
+      </Flex>
+      <Card size="2" variant="surface" className="mb-6 shadow-sm border border-slate-200 bg-slate-50">
+        <Flex gap="4" direction={{ initial: 'column', sm: 'row' }}>
+          <Box flexGrow="1">
+            <TextField.Root size="2">
+              <TextField.Input 
+                placeholder="Поиск по названию или системе..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </TextField.Root>
+          </Box>
+          <Box>
+            <Select.Root value={statusFilter} onValueChange={setStatusFilter}>
+              <Select.Trigger className="w-full sm:w-[180px]" />
+              <Select.Content>
+                <Select.Item value="ALL">Все статусы</Select.Item>
+                <Select.Item value="OPEN">OPEN</Select.Item>
+                <Select.Item value="IN_PROGRESS">IN PROGRESS</Select.Item>
+                <Select.Item value="RESOLVED">RESOLVED</Select.Item>
+                <Select.Item value="CLOSED">CLOSED</Select.Item>
+              </Select.Content>
+            </Select.Root>
+          </Box>
+          <Box>
+            <Select.Root value={criticalityFilter} onValueChange={setCriticalityFilter}>
+              <Select.Trigger className="w-full sm:w-[180px]" />
+              <Select.Content>
+                <Select.Item value="ALL">Любая критичность</Select.Item>
+                <Select.Item value="CRITICAL">CRITICAL</Select.Item>
+                <Select.Item value="HIGH">HIGH</Select.Item>
+                <Select.Item value="MEDIUM">MEDIUM</Select.Item>
+                <Select.Item value="LOW">LOW</Select.Item>
+              </Select.Content>
+            </Select.Root>
+          </Box>
+        </Flex>
+      </Card>
+      <Box className="shadow-sm rounded-xl overflow-hidden border border-slate-200">
+        <Table.Root variant="surface">
+          <Table.Header>
+            <Table.Row>
+              <Table.ColumnHeaderCell>ID</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Название</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell className="hidden md:table-cell">Система</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell className="hidden sm:table-cell">Критичность</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell className="hidden sm:table-cell">Статус</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell justify="center">Действия</Table.ColumnHeaderCell>
+            </Table.Row>
+          </Table.Header>
 
-      {/* Панель фильтров */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-        <div className="flex-1">
-          <input
-            type="text"
-            placeholder="Поиск по названию или системе..."
-            className="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div>
-          <select 
-            className="w-full p-2 border border-gray-300 rounded text-sm bg-white"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="ALL">Все статусы</option>
-            <option value="OPEN">OPEN</option>
-            <option value="IN_PROGRESS">IN PROGRESS</option>
-            <option value="RESOLVED">RESOLVED</option>
-            <option value="CLOSED">CLOSED</option>
-          </select>
-        </div>
-        <div>
-          <select 
-            className="w-full p-2 border border-gray-300 rounded text-sm bg-white"
-            value={criticalityFilter}
-            onChange={(e) => setCriticalityFilter(e.target.value)}
-          >
-            <option value="ALL">Любая критичность</option>
-            <option value="CRITICAL">CRITICAL</option>
-            <option value="HIGH">HIGH</option>
-            <option value="MEDIUM">MEDIUM</option>
-            <option value="LOW">LOW</option>
-          </select>
-        </div>
-      </div>
-      
-      {/* Таблица */}
-      <div className="overflow-x-auto shadow-sm border border-gray-200 sm:rounded-lg">
-        <table className="w-full text-sm text-left text-gray-500">
-          <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-            <tr>
-              <th className="px-6 py-3">ID</th>
-              <th className="px-6 py-3">Название</th>
-              <th className="px-6 py-3">Система</th>
-              <th className="px-6 py-3">Критичность</th>
-              <th className="px-6 py-3">Статус</th>
-            </tr>
-          </thead>
-          <tbody>
+          <Table.Body>
             {filteredIssues.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-gray-400">
+              <Table.Row>
+                <Table.Cell colSpan={6} align="center" className="py-8 text-gray-400">
                   По вашему запросу ничего не найдено
-                </td>
-              </tr>
+                </Table.Cell>
+              </Table.Row>
             ) : (
               filteredIssues.map((issue) => (
-                <tr key={issue.id} className="bg-white border-b hover:bg-gray-50 cursor-pointer">
-                  <td className="px-6 py-4 font-mono text-xs">#{issue.id}</td>
-                  <td className="px-6 py-4 font-medium text-gray-900">{issue.title}</td>
-                  <td className="px-6 py-4">{issue.system}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold tracking-wider
-                      ${issue.criticality === 'CRITICAL' ? 'bg-red-100 text-red-800' : ''}
-                      ${issue.criticality === 'HIGH' ? 'bg-orange-100 text-orange-800' : ''}
-                      ${issue.criticality === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' : ''}
-                      ${issue.criticality === 'LOW' ? 'bg-green-100 text-green-800' : ''}
-                    `}>
+                <Table.Row key={issue.id} align="center" className="hover:bg-slate-50 transition-colors">
+                  <Table.Cell>
+                    <Text size="2" color="gray" weight="bold">#{issue.id}</Text>
+                  </Table.Cell>
+                  
+                  <Table.Cell>
+                    <Link href={`/issues/${issue.id}`} className="font-semibold text-blue-600 hover:underline">
+                      {issue.title}
+                    </Link>
+                    <div className="block sm:hidden mt-2">
+                      <Flex gap="2">
+                        <Badge color={issue.status === 'CLOSED' ? 'green' : 'blue'}>{issue.status}</Badge>
+                        <Badge color={issue.criticality === 'CRITICAL' ? 'red' : issue.criticality === 'HIGH' ? 'orange' : issue.criticality === 'MEDIUM' ? 'yellow' : 'gray'}>{issue.criticality}</Badge>
+                      </Flex>
+                    </div>
+                  </Table.Cell>
+                  
+                  <Table.Cell className="hidden md:table-cell">
+                    <Text size="2">{issue.system}</Text>
+                  </Table.Cell>
+
+                  <Table.Cell className="hidden sm:table-cell">
+                    <Badge color={
+                      issue.criticality === 'CRITICAL' ? 'red' : 
+                      issue.criticality === 'HIGH' ? 'orange' : 
+                      issue.criticality === 'MEDIUM' ? 'yellow' : 'gray'
+                    }>
                       {issue.criticality}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${issue.status === 'OPEN' ? 'bg-blue-500' : 'bg-gray-300'}`}></span>
+                    </Badge>
+                  </Table.Cell>
+
+                  <Table.Cell className="hidden sm:table-cell">
+                    <Badge color={
+                      issue.status === 'CLOSED' ? 'green' : 
+                      issue.status === 'RESOLVED' ? 'teal' : 
+                      issue.status === 'IN_PROGRESS' ? 'blue' : 'gray'
+                    }>
                       {issue.status}
-                    </span>
-                  </td>
-                </tr>
+                    </Badge>
+                  </Table.Cell>
+                  <Table.Cell justify="center">
+                    <Button variant="soft" size="1" asChild className="cursor-pointer">
+                      <Link href={`/issues/${issue.id}`}>Открыть</Link>
+                    </Button>
+                  </Table.Cell>
+                </Table.Row>
               ))
             )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          </Table.Body>
+        </Table.Root>
+      </Box>
+    </Box>
   );
 }
