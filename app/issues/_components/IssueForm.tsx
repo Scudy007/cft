@@ -5,7 +5,7 @@ import Spinner from "@/app/components/Spinner";
 import { createIssueSchema } from "@/app/validationSchemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Issue } from "@prisma/client";
-import { Button, Callout, Flex, Grid, Select, TextField, Box, Heading, Text, Card,Separator } from "@radix-ui/themes";
+import { Button, Callout, Flex, Grid, Select, TextField, Box, Heading, Text, Card, Separator } from "@radix-ui/themes";
 import axios from "axios";
 import "easymde/dist/easymde.min.css";
 import dynamic from "next/dynamic";
@@ -14,6 +14,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import RiskCalculator, { RiskData } from "./RiskCalculator";
+import { calculateCVSS, calculateDread } from "@/app/lib/riskCalc";
 
 const SimpleMDE = dynamic(() => import("react-simplemde-editor"), { ssr: false });
 
@@ -25,14 +26,14 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
   const [isSubmitting, setSubmitting] = useState(false);
 
   const [riskData, setRiskData] = useState<RiskData>({
-    cvssAV: issue?.cvssAV || "NETWORK",
-    cvssAC: issue?.cvssAC || "LOW",
-    cvssPR: issue?.cvssPR || "NONE",
-    cvssUI: issue?.cvssUI || "NONE",
-    cvssS: issue?.cvssS || "UNCHANGED",
-    cvssC: issue?.cvssC || "NONE",
-    cvssI: issue?.cvssI || "NONE",
-    cvssA: issue?.cvssA || "NONE",
+    cvssAV: (issue?.cvssAV as any) || "NETWORK",
+    cvssAC: (issue?.cvssAC as any) || "LOW",
+    cvssPR: (issue?.cvssPR as any) || "NONE",
+    cvssUI: (issue?.cvssUI as any) || "NONE",
+    cvssS: (issue?.cvssS as any) || "UNCHANGED",
+    cvssC: (issue?.cvssC as any) || "NONE",
+    cvssI: (issue?.cvssI as any) || "NONE",
+    cvssA: (issue?.cvssA as any) || "NONE",
     dreadDamage: issue?.dreadDamage || 1,
     dreadRepro: issue?.dreadRepro || 1,
     dreadExploit: issue?.dreadExploit || 1,
@@ -54,7 +55,16 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
   const onSubmit = handleSubmit(async (data) => {
     try {
       setSubmitting(true);
-      const payload = { ...data, ...riskData };
+      
+      const finalCvssScore = calculateCVSS(riskData);
+      const finalDreadScore = calculateDread(riskData);
+
+      const payload = { 
+        ...data, 
+        ...riskData,
+        cvssScore: finalCvssScore,
+        dreadScore: finalDreadScore
+      };
 
       if (issue) {
         await axios.patch(`/api/issues/${issue.id}`, payload);
@@ -62,7 +72,7 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
         await axios.post("/api/issues", payload);
       }
       
-      router.push("/issues");
+      router.push("/"); 
       router.refresh();
     } catch (err) {
       setError("Произошла ошибка при сохранении. Проверьте заполнение всех полей.");
