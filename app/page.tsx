@@ -87,15 +87,12 @@ export default async function Home({ searchParams }: Props) {
         
         <Flex gap="3" align="center" wrap="wrap">
           <Text size="2" weight="bold" color="gray">Сортировка:</Text>
-          
           <Button variant={isDateSort ? 'solid' : 'soft'} asChild>
             <Link href={buildSortUrl('new')}>По дате</Link>
           </Button>
-          
           <Button color="red" variant={searchParams.orderBy === 'cvss' ? 'solid' : 'soft'} asChild>
             <Link href={buildSortUrl('cvss')}>По CVSS Score</Link>
           </Button>
-
           <Button color="orange" variant={searchParams.orderBy === 'dread' ? 'solid' : 'soft'} asChild>
             <Link href={buildSortUrl('dread')}>По DREAD Score</Link>
           </Button>
@@ -108,7 +105,8 @@ export default async function Home({ searchParams }: Props) {
             <Table.ColumnHeaderCell>Уязвимость</Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell className="hidden md:table-cell">Статус</Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell className="hidden md:table-cell">Критичность</Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell className="hidden md:table-cell">Система</Table.ColumnHeaderCell>
+            <Table.ColumnHeaderCell className="hidden lg:table-cell">Система</Table.ColumnHeaderCell>
+            <Table.ColumnHeaderCell className="hidden sm:table-cell">Баллы</Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell className="hidden md:table-cell">Ответственный</Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell>Дата</Table.ColumnHeaderCell>
           </Table.Row>
@@ -121,41 +119,36 @@ export default async function Home({ searchParams }: Props) {
                 <Link href={`/issues/${issue.id}`} passHref legacyBehavior>
                   <RadixLink weight="bold">{issue.title}</RadixLink>
                 </Link>
-                
                 <div className="block md:hidden mt-1">
                   <Flex gap="2">
-                    <Badge color={issue.status === 'CLOSED' ? 'green' : 'blue'}>
-                      {issue.status}
-                    </Badge>
-                    <Badge color={
-                      issue.criticality === 'CRITICAL' ? 'red' : 
-                      issue.criticality === 'HIGH' ? 'orange' : 
-                      issue.criticality === 'MEDIUM' ? 'yellow' : 'gray'
-                    }>
-                      {issue.criticality}
-                    </Badge>
+                    <Badge color={issue.status === 'CLOSED' ? 'green' : 'blue'}>{issue.status}</Badge>
+                    <Badge color={issue.criticality === 'CRITICAL' ? 'red' : issue.criticality === 'HIGH' ? 'orange' : issue.criticality === 'MEDIUM' ? 'yellow' : 'gray'}>{issue.criticality}</Badge>
                   </Flex>
                 </div>
               </Table.Cell>
               
               <Table.Cell className="hidden md:table-cell">
-                <Badge color={issue.status === 'CLOSED' ? 'green' : 'blue'}>
-                  {issue.status}
-                </Badge>
+                <Badge color={issue.status === 'CLOSED' ? 'green' : 'blue'}>{issue.status}</Badge>
               </Table.Cell>
               
               <Table.Cell className="hidden md:table-cell">
-                <Badge color={
-                  issue.criticality === 'CRITICAL' ? 'red' : 
-                  issue.criticality === 'HIGH' ? 'orange' : 
-                  issue.criticality === 'MEDIUM' ? 'yellow' : 'gray'
-                }>
-                  {issue.criticality}
-                </Badge>
+                <Badge color={issue.criticality === 'CRITICAL' ? 'red' : issue.criticality === 'HIGH' ? 'orange' : issue.criticality === 'MEDIUM' ? 'yellow' : 'gray'}>{issue.criticality}</Badge>
               </Table.Cell>
 
-              <Table.Cell className="hidden md:table-cell">
+              <Table.Cell className="hidden lg:table-cell">
                 <Text size="2">{issue.system}</Text>
+              </Table.Cell>
+
+              {/* ВЫВОД БАЛЛОВ В ТАБЛИЦУ */}
+              <Table.Cell className="hidden sm:table-cell">
+                <Flex direction="column" gap="1">
+                  {/* @ts-ignore - игнорим типизацию, чтобы не ругался если полей вдруг нет */}
+                  {issue.cvssScore != null && <Badge color="red" variant="soft">CVSS: {issue.cvssScore}</Badge>}
+                  {/* @ts-ignore */}
+                  {issue.dreadScore != null && <Badge color="orange" variant="soft">DREAD: {issue.dreadScore}</Badge>}
+                  {/* @ts-ignore */}
+                  {issue.cvssScore == null && issue.dreadScore == null && <Text size="2" color="gray">-</Text>}
+                </Flex>
               </Table.Cell>
 
               <Table.Cell className="hidden md:table-cell">
