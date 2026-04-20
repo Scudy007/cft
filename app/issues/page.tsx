@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Box, Flex, Heading, Text, Card, TextField, Select, Table, Badge, Button } from '@radix-ui/themes';
+import { Box, Flex, Heading, Text, Card, TextField, Select, Badge, Grid } from '@radix-ui/themes';
 
 export interface AuditIssue {
   id: number;
@@ -50,17 +50,25 @@ export default function IssuesPage() {
     return matchesSearch && matchesStatus && matchesCriticality;
   });
 
-  if (isLoading) return <Box className="p-10 text-center text-gray-500">Загрузка данных...</Box>;
+  const kanbanColumns = [
+    { id: 'OPEN', label: 'Открыто', color: 'blue' },
+    { id: 'IN_PROGRESS', label: 'В работе', color: 'orange' },
+    { id: 'RESOLVED', label: 'Решено (на проверке)', color: 'teal' },
+    { id: 'CLOSED', label: 'Закрыто', color: 'gray' },
+  ];
+
+  if (isLoading) return <Box className="p-10 text-center text-gray-500">Загрузка доски...</Box>;
   if (error) return <Box className="p-10 text-red-500 text-center">{error}</Box>;
 
   return (
     <Box className="max-w-7xl mx-auto py-6 px-4">
       <Flex justify="between" align="center" mb="5">
-        <Heading size="7" color="gray">Результаты аудитов</Heading>
+        <Heading size="7" color="gray">Рабочая доска (Kanban)</Heading>
         <Text size="2" color="gray">
-          Найдено записей: <Text weight="bold">{filteredIssues.length}</Text>
+          Найдено задач: <Text weight="bold">{filteredIssues.length}</Text>
         </Text>
       </Flex>
+
       <Card size="2" variant="surface" className="mb-6 shadow-sm border border-slate-200 bg-slate-50">
         <Flex gap="4" direction={{ initial: 'column', sm: 'row' }}>
           <Box flexGrow="1">
@@ -98,79 +106,62 @@ export default function IssuesPage() {
           </Box>
         </Flex>
       </Card>
-      <Box className="shadow-sm rounded-xl overflow-hidden border border-slate-200">
-        <Table.Root variant="surface">
-          <Table.Header>
-            <Table.Row>
-              <Table.ColumnHeaderCell>ID</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell>Название</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell className="hidden md:table-cell">Система</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell className="hidden sm:table-cell">Критичность</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell className="hidden sm:table-cell">Статус</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell justify="center">Действия</Table.ColumnHeaderCell>
-            </Table.Row>
-          </Table.Header>
+      
+      <Grid columns={{ initial: '1', md: '2', xl: '4' }} gap="4" align="start">
+        {kanbanColumns.map((col) => {
+          const columnIssues = filteredIssues.filter(issue => issue.status === col.id);
+          
+          return (
+            <Box key={col.id} className="bg-slate-100 rounded-xl p-3 min-h-[60vh] border border-slate-200">
+              
+              <Flex justify="between" align="center" mb="4" px="1">
+                <Text weight="bold" size="2" color={col.color as any} uppercase tracking="wide">
+                  {col.label}
+                </Text>
+                <Badge radius="full" color="gray" variant="surface">
+                  {columnIssues.length}
+                </Badge>
+              </Flex>
 
-          <Table.Body>
-            {filteredIssues.length === 0 ? (
-              <Table.Row>
-                <Table.Cell colSpan={6} align="center" className="py-8 text-gray-400">
-                  По вашему запросу ничего не найдено
-                </Table.Cell>
-              </Table.Row>
-            ) : (
-              filteredIssues.map((issue) => (
-                <Table.Row key={issue.id} align="center" className="hover:bg-slate-50 transition-colors">
-                  <Table.Cell>
-                    <Text size="2" color="gray" weight="bold">#{issue.id}</Text>
-                  </Table.Cell>
-                  
-                  <Table.Cell>
-                    <Link href={`/issues/${issue.id}`} className="font-semibold text-blue-600 hover:underline">
-                      {issue.title}
-                    </Link>
-                    <div className="block sm:hidden mt-2">
-                      <Flex gap="2">
-                        <Badge color={issue.status === 'CLOSED' ? 'green' : 'blue'}>{issue.status}</Badge>
-                        <Badge color={issue.criticality === 'CRITICAL' ? 'red' : issue.criticality === 'HIGH' ? 'orange' : issue.criticality === 'MEDIUM' ? 'yellow' : 'gray'}>{issue.criticality}</Badge>
+              <Flex direction="column" gap="3">
+                {columnIssues.map((issue) => (
+                  <Card key={issue.id} size="2" variant="surface" className="shadow-sm hover:shadow-md transition-all">
+                    <Flex direction="column" gap="2">
+                      <Flex justify="between" align="start" gap="2">
+                        <Badge color={
+                          issue.criticality === 'CRITICAL' ? 'red' : 
+                          issue.criticality === 'HIGH' ? 'orange' : 
+                          issue.criticality === 'MEDIUM' ? 'yellow' : 'gray'
+                        }>
+                          {issue.criticality}
+                        </Badge>
+                        <Text size="1" color="gray" weight="medium">#{issue.id}</Text>
                       </Flex>
-                    </div>
-                  </Table.Cell>
-                  
-                  <Table.Cell className="hidden md:table-cell">
-                    <Text size="2">{issue.system}</Text>
-                  </Table.Cell>
 
-                  <Table.Cell className="hidden sm:table-cell">
-                    <Badge color={
-                      issue.criticality === 'CRITICAL' ? 'red' : 
-                      issue.criticality === 'HIGH' ? 'orange' : 
-                      issue.criticality === 'MEDIUM' ? 'yellow' : 'gray'
-                    }>
-                      {issue.criticality}
-                    </Badge>
-                  </Table.Cell>
+                      <Link href={`/issues/${issue.id}`} className="font-semibold text-slate-800 hover:text-indigo-600 text-sm leading-tight mt-1 mb-1 block">
+                        {issue.title}
+                      </Link>
 
-                  <Table.Cell className="hidden sm:table-cell">
-                    <Badge color={
-                      issue.status === 'CLOSED' ? 'green' : 
-                      issue.status === 'RESOLVED' ? 'teal' : 
-                      issue.status === 'IN_PROGRESS' ? 'blue' : 'gray'
-                    }>
-                      {issue.status}
-                    </Badge>
-                  </Table.Cell>
-                  <Table.Cell justify="center">
-                    <Button variant="soft" size="1" asChild className="cursor-pointer">
-                      <Link href={`/issues/${issue.id}`}>Открыть</Link>
-                    </Button>
-                  </Table.Cell>
-                </Table.Row>
-              ))
-            )}
-          </Table.Body>
-        </Table.Root>
-      </Box>
+                      <Flex justify="between" align="center">
+                        <Text size="1" color="gray" className="truncate max-w-[120px]">
+                          {issue.system}
+                        </Text>
+                      </Flex>
+                    </Flex>
+                  </Card>
+                ))}
+
+                {columnIssues.length === 0 && (
+                  <Box className="border-2 border-dashed border-slate-300 rounded-lg py-6 text-center">
+                    <Text size="1" color="gray">Нет задач</Text>
+                  </Box>
+                )}
+              </Flex>
+
+            </Box>
+          );
+        })}
+      </Grid>
     </Box>
   );
 }
