@@ -107,24 +107,24 @@ export default async function Home({ searchParams }: Props) {
         <Heading size="8" color="gray">Дашборд безопасности</Heading>
 
         <Grid columns={{ initial: '1', sm: '3' }} gap="5">
-          <Card size="3" variant="surface" className="shadow-sm hover:shadow-md transition-shadow">
+          <Box className="p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow bg-gradient-to-br from-indigo-500 to-violet-600">
             <Flex direction="column" gap="2">
-              <Text size="2" color="gray" weight="bold" uppercase>Всего замечаний</Text>
-              <Text size="9" weight="bold">{totalCount}</Text>
+              <Text size="3" className="text-indigo-100" weight="bold" uppercase>Всего замечаний</Text>
+              <Text size="9" weight="bold" className="text-white">{totalCount}</Text>
             </Flex>
-          </Card>
-          <Card size="3" variant="surface" className="shadow-sm hover:shadow-md transition-shadow">
+          </Box>
+          <Box className="p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow bg-gradient-to-br from-blue-500 to-cyan-400">
             <Flex direction="column" gap="2">
-              <Text size="2" color="blue" weight="bold" uppercase>В работе (Open)</Text>
-              <Text size="9" weight="bold" color="blue">{openCount}</Text>
+              <Text size="3" className="text-blue-100" weight="bold" uppercase>В работе</Text>
+              <Text size="9" weight="bold" className="text-white">{openCount}</Text>
             </Flex>
-          </Card>
-          <Card size="3" variant="surface" className="shadow-sm hover:shadow-md transition-shadow">
+          </Box>
+          <Box className="p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow bg-gradient-to-br from-rose-500 to-orange-500">
             <Flex direction="column" gap="2">
-              <Text size="2" color="red" weight="bold" uppercase>Критический риск</Text>
-              <Text size="9" weight="bold" color="red">{criticalCount}</Text>
+              <Text size="3" className="text-rose-100" weight="bold" uppercase>Критический риск</Text>
+              <Text size="9" weight="bold" className="text-white">{criticalCount}</Text>
             </Flex>
-          </Card>
+          </Box>
         </Grid>
 
         <DashboardCharts />
