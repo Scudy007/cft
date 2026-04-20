@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { AiFillBug, AiOutlineDown } from "react-icons/ai";
 import classNames from "classnames";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation"; 
 import { useSession, signOut } from "next-auth/react";
 import { Avatar, Button, DropdownMenu, Flex, Text, Box, Container } from "@radix-ui/themes";
 
 const NavBar = () => {
   const { data: session, status } = useSession();
   const currentPage = usePathname();
+  const router = useRouter();
 
   const links = [
     { label: "Дашборд", href: "/" },
@@ -25,14 +26,13 @@ const NavBar = () => {
   const roleLabel = isAdmin ? "Админ" : isAnalyst ? "Аналитик" : (session?.user as any)?.role || "Пользователь";
 
   return (
-
     <header className="sticky top-0 z-50 w-full border-b border-indigo-200/60 bg-gradient-to-r from-indigo-100/80 via-white/60 to-blue-100/80 backdrop-blur-xl shadow-md">
       <Container size="4">
         <Flex justify="between" align="center" className="h-16 px-4 md:px-6">
           
           <Flex align="center" gap="3">
-            <Link href="/" className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 transition-colors">
-              <Box className="bg-indigo-100 p-1.5 rounded-lg shadow-sm">
+            <Link href="/" className="flex items-center gap-2 text-indigo-700 hover:text-indigo-900 transition-colors">
+              <Box className="bg-white/80 p-1.5 rounded-lg shadow-sm border border-indigo-100">
                 <AiFillBug size={22} />
               </Box>
               <Text weight="bold" size="4" className="hidden sm:block text-slate-900 tracking-tight">
@@ -47,10 +47,10 @@ const NavBar = () => {
                 key={item.href}
                 href={item.href}
                 className={classNames(
-                  "text-sm font-medium transition-colors hover:text-indigo-600",
+                  "text-sm font-semibold transition-colors hover:text-indigo-700",
                   {
-                    "text-indigo-600": item.href === currentPage,
-                    "text-slate-500": item.href !== currentPage,
+                    "text-indigo-700 drop-shadow-sm": item.href === currentPage,
+                    "text-slate-600": item.href !== currentPage,
                   }
                 )}
               >
@@ -67,8 +67,8 @@ const NavBar = () => {
                 </Button>
 
                 <DropdownMenu.Root>
-                  <DropdownMenu.Trigger>
-                    <button className="flex items-center gap-3 hover:bg-white/60 p-1 pr-3 rounded-full transition-colors outline-none cursor-pointer border border-transparent hover:border-slate-200">
+                  <DropdownMenu.Trigger asChild>
+                    <button className="flex items-center gap-3 hover:bg-white/60 p-1 pr-3 rounded-full transition-all outline-none cursor-pointer border border-transparent hover:border-indigo-200 hover:shadow-sm">
                       <Avatar
                         src={session.user?.image || undefined}
                         fallback={session.user?.name?.charAt(0).toUpperCase() || "?"}
@@ -89,14 +89,21 @@ const NavBar = () => {
                         </Flex>
                       </Flex>
                       
-                      <AiOutlineDown className="text-slate-400 text-xs ml-1 hidden sm:block" />
+                      <AiOutlineDown className="text-slate-500 text-xs ml-1 hidden sm:block" />
                     </button>
                   </DropdownMenu.Trigger>
                   
                   <DropdownMenu.Content size="2" align="end" className="min-w-[180px]">
-                    <DropdownMenu.Item className="cursor-pointer">Мой профиль</DropdownMenu.Item>
-                    <DropdownMenu.Item className="cursor-pointer">Настройки системы</DropdownMenu.Item>
+                    <DropdownMenu.Item className="cursor-pointer" onClick={() => router.push("/profile")}>
+                      Мой профиль
+                    </DropdownMenu.Item>
+                    
+                    <DropdownMenu.Item className="cursor-pointer" onClick={() => router.push("/settings")}>
+                      Настройки системы
+                    </DropdownMenu.Item>
+                    
                     <DropdownMenu.Separator />
+                    
                     <DropdownMenu.Item color="red" className="cursor-pointer" onClick={() => signOut({ callbackUrl: "/" })}>
                       Выйти
                     </DropdownMenu.Item>
