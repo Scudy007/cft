@@ -22,7 +22,7 @@ export interface RiskData {
 
 interface Props {
   data: RiskData;
-  onChange: (newData: RiskData) => void;
+  onChange?: (newData: RiskData) => void;
   readonly?: boolean;
 }
 
@@ -31,7 +31,7 @@ const RiskCalculator = ({ data, onChange, readonly = false }: Props) => {
   const dreadScore = calculateDread(data);
 
   const updateField = (field: keyof RiskData, value: any) => {
-    if (readonly) return;
+    if (readonly || !onChange) return; 
     onChange({ ...data, [field]: value });
   };
 

@@ -1,4 +1,5 @@
 import { Heading, Flex, Card, Text, Badge, Grid, Box } from "@radix-ui/themes";
+import RiskCalculator from "@/app/issues/_components/RiskCalculator";
 
 const IssueDetails = ({ issue }: { issue: any }) => {
   return (
@@ -34,7 +35,9 @@ const IssueDetails = ({ issue }: { issue: any }) => {
         </Card>
         <Card>
           <Text size="2" color="gray" mb="1">Оценка риска</Text>
-          <Text as="div" weight="bold">{issue.riskScore ? issue.riskScore : "Не рассчитано"}</Text>
+          <Text as="div" weight="bold">
+            CVSS: {issue.cvssScore?.toFixed(1) || 0} | DREAD: {issue.dreadScore?.toFixed(1) || 0}
+          </Text>
         </Card>
         <Card>
           <Text size="2" color="gray" mb="1">Дедлайн устранения</Text>
@@ -48,6 +51,14 @@ const IssueDetails = ({ issue }: { issue: any }) => {
         <Heading size="3" mb="2">Описание уязвимости</Heading>
         <Text as="p">{issue.description}</Text>
       </Card>
+
+      <Box mt="6">
+        <Heading size="4" mb="4">Подробная оценка рисков</Heading>
+        <RiskCalculator 
+          data={issue} 
+          readonly={true}   
+        />
+      </Box>
     </>
   );
 };

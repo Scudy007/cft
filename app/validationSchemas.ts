@@ -21,4 +21,5 @@ export const createIssueSchema = z.object({
     cvssA: z.string().optional(),
     cvssScore: z.number().optional().nullable(),
     dreadScore: z.number().optional().nullable(),
+    deadline: z.coerce.date().optional().nullable(),
 });

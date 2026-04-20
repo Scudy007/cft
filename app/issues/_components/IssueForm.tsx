@@ -48,7 +48,8 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
       description: issue?.description,
       system: issue?.system,
       category: issue?.category,
-      assignedToUserId: issue?.assignedToUserId
+      assignedToUserId: issue?.assignedToUserId,
+      deadline: issue?.deadline ? new Date(issue.deadline).toISOString().split('T')[0] as any : undefined
     }
   });
 
@@ -119,6 +120,16 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
                       <TextField.Input placeholder="Vulnerability, Bug..." {...register("category")} />
                     </TextField.Root>
                     <ErrorMessage>{errors.category?.message}</ErrorMessage>
+                  </Box>
+                  <Box>
+                    <Text as="label" size="2" weight="bold" mb="1" display="block">Дедлайн</Text>
+                    <TextField.Root>
+                      <TextField.Input 
+                        type="date" 
+                        {...register("deadline", { valueAsDate: true })} 
+                      />
+                    </TextField.Root>
+                    <ErrorMessage>{errors.deadline?.message}</ErrorMessage>
                   </Box>
                 </Grid>
 

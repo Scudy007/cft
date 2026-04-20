@@ -60,7 +60,6 @@ export default async function Home({ searchParams }: Props) {
   return (
     <Box className="max-w-7xl mx-auto py-6 px-4">
       <Flex direction="column" gap="6">
-        
         <Heading size="8" color="gray">Дашборд безопасности</Heading>
 
         <Grid columns={{ initial: '1', sm: '3' }} gap="5">
@@ -91,7 +90,6 @@ export default async function Home({ searchParams }: Props) {
           
           <Flex direction={{ initial: 'column', lg: 'row' }} justify="between" align="start" gap="4">
             <IssueFilter currentUserId={currentUserId} />
-            
             <Flex gap="3" align="center" wrap="wrap">
               <Text size="2" weight="bold" color="gray">Сортировка:</Text>
               <Button variant={isDateSort ? 'solid' : 'soft'} asChild className="shadow-sm cursor-pointer">
@@ -116,61 +114,67 @@ export default async function Home({ searchParams }: Props) {
                   <Table.ColumnHeaderCell className="hidden lg:table-cell">Система</Table.ColumnHeaderCell>
                   <Table.ColumnHeaderCell className="hidden sm:table-cell">Баллы</Table.ColumnHeaderCell>
                   <Table.ColumnHeaderCell className="hidden md:table-cell">Ответственный</Table.ColumnHeaderCell>
-                  <Table.ColumnHeaderCell>Дата</Table.ColumnHeaderCell>
+                  {/* НОВАЯ КОЛОНКА */}
+                  <Table.ColumnHeaderCell className="hidden xl:table-cell">Дедлайн</Table.ColumnHeaderCell>
+                  <Table.ColumnHeaderCell>Создано</Table.ColumnHeaderCell>
                 </Table.Row>
               </Table.Header>
 
               <Table.Body>
-                {issues.map((issue) => (
-                  <Table.Row key={issue.id} align="center">
-                    <Table.Cell>
-                      <Link href={`/issues/${issue.id}`} passHref legacyBehavior>
-                        <RadixLink weight="bold">{issue.title}</RadixLink>
-                      </Link>
-                      <div className="block md:hidden mt-1">
-                        <Flex gap="2">
-                          <Badge color={issue.status === 'CLOSED' ? 'green' : 'blue'}>{issue.status}</Badge>
-                          <Badge color={issue.criticality === 'CRITICAL' ? 'red' : issue.criticality === 'HIGH' ? 'orange' : issue.criticality === 'MEDIUM' ? 'yellow' : 'gray'}>{issue.criticality}</Badge>
+                {issues.map((issue) => {
+                  // Логика для определения просрочки
+                  const isOverdue = issue.deadline && new Date(issue.deadline) < new Date() && issue.status !== 'CLOSED';
+
+                  return (
+                    <Table.Row key={issue.id} align="center">
+                      <Table.Cell>
+                        <Link href={`/issues/${issue.id}`} passHref legacyBehavior>
+                          <RadixLink weight="bold">{issue.title}</RadixLink>
+                        </Link>
+                        <div className="block md:hidden mt-1">
+                          <Flex gap="2">
+                            <Badge color={issue.status === 'CLOSED' ? 'green' : 'blue'}>{issue.status}</Badge>
+                            <Badge color={issue.criticality === 'CRITICAL' ? 'red' : issue.criticality === 'HIGH' ? 'orange' : issue.criticality === 'MEDIUM' ? 'yellow' : 'gray'}>{issue.criticality}</Badge>
+                          </Flex>
+                        </div>
+                      </Table.Cell>
+                      
+                      <Table.Cell className="hidden md:table-cell">
+                        <Badge color={issue.status === 'CLOSED' ? 'green' : 'blue'}>{issue.status}</Badge>
+                      </Table.Cell>
+                      
+                      <Table.Cell className="hidden md:table-cell">
+                        <Badge color={issue.criticality === 'CRITICAL' ? 'red' : issue.criticality === 'HIGH' ? 'orange' : issue.criticality === 'MEDIUM' ? 'yellow' : 'gray'}>{issue.criticality}</Badge>
+                      </Table.Cell>
+
+                      <Table.Cell className="hidden lg:table-cell">
+                        <Text size="2">{issue.system}</Text>
+                      </Table.Cell>
+
+                      <Table.Cell className="hidden sm:table-cell">
+                        <Flex direction="column" gap="1">
+                          {issue.cvssScore != null && <Badge color="red" variant="soft">CVSS: {issue.cvssScore}</Badge>}
+                          {issue.dreadScore != null && <Badge color="orange" variant="soft">DREAD: {issue.dreadScore}</Badge>}
                         </Flex>
-                      </div>
-                    </Table.Cell>
-                    
-                    <Table.Cell className="hidden md:table-cell">
-                      <Badge color={issue.status === 'CLOSED' ? 'green' : 'blue'}>{issue.status}</Badge>
-                    </Table.Cell>
-                    
-                    <Table.Cell className="hidden md:table-cell">
-                      <Badge color={issue.criticality === 'CRITICAL' ? 'red' : issue.criticality === 'HIGH' ? 'orange' : issue.criticality === 'MEDIUM' ? 'yellow' : 'gray'}>{issue.criticality}</Badge>
-                    </Table.Cell>
+                      </Table.Cell>
 
-                    <Table.Cell className="hidden lg:table-cell">
-                      <Text size="2">{issue.system}</Text>
-                    </Table.Cell>
+                      <Table.Cell className="hidden md:table-cell">
+                        <Text size="2">{issue.assignedToUser?.name || "Не назначено"}</Text>
+                      </Table.Cell>
 
-                    <Table.Cell className="hidden sm:table-cell">
-                      <Flex direction="column" gap="1">
-                        {/* @ts-ignore */}
-                        {issue.cvssScore != null && <Badge color="red" variant="soft">CVSS: {issue.cvssScore}</Badge>}
-                        {/* @ts-ignore */}
-                        {issue.dreadScore != null && <Badge color="orange" variant="soft">DREAD: {issue.dreadScore}</Badge>}
-                        {/* @ts-ignore */}
-                        {issue.cvssScore == null && issue.dreadScore == null && <Text size="2" color="gray">-</Text>}
-                      </Flex>
-                    </Table.Cell>
+                      {/* ЯЧЕЙКА ДЕДЛАЙНА */}
+                      <Table.Cell className="hidden xl:table-cell">
+                        <Text size="2" color={isOverdue ? "red" : "gray"} weight={isOverdue ? "bold" : "regular"}>
+                          {issue.deadline ? new Date(issue.deadline).toLocaleDateString("ru-RU") : "—"}
+                        </Text>
+                      </Table.Cell>
 
-                    <Table.Cell className="hidden md:table-cell">
-                      {issue.assignedToUser ? (
-                        <Text size="2">{issue.assignedToUser.name || issue.assignedToUser.email}</Text>
-                      ) : (
-                        <Text size="2" color="gray">Не назначено</Text>
-                      )}
-                    </Table.Cell>
-
-                    <Table.Cell>
-                      <Text size="2">{issue.createdAt.toLocaleDateString("ru-RU")}</Text>
-                    </Table.Cell>
-                  </Table.Row>
-                ))}
+                      <Table.Cell>
+                        <Text size="2">{issue.createdAt.toLocaleDateString("ru-RU")}</Text>
+                      </Table.Cell>
+                    </Table.Row>
+                  );
+                })}
               </Table.Body>
             </Table.Root>
           </Box>
