@@ -44,7 +44,7 @@
 ### 1. Клонирование репозитория
 Откройте терминал и выполните команду:
 ```bash
-git clone [https://github.com/ВАШ_НИК/cft.git](https://github.com/ВАШ_НИК/cft.git)
+git clone https://github.com/Scudy007/cft.git
 cd cft
 ```
 
