@@ -5,7 +5,7 @@ import Spinner from "@/app/components/Spinner";
 import { createIssueSchema } from "@/app/validationSchemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Issue } from "@prisma/client";
-import { Button, Callout, Flex, Grid, TextField, Box, Heading, Text, Card } from "@radix-ui/themes";
+import { Button, Callout, Flex, Grid, TextField, Box, Heading, Text, Card, Select } from "@radix-ui/themes";
 import axios from "axios";
 import "easymde/dist/easymde.min.css";
 import dynamic from "next/dynamic";
@@ -48,6 +48,7 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
       description: issue?.description,
       system: issue?.system,
       category: issue?.category,
+      criticality: issue?.criticality || "LOW",
       assignedToUserId: issue?.assignedToUserId,
       deadline: issue?.deadline ? new Date(issue.deadline).toISOString().split('T')[0] as any : undefined
     }
@@ -106,11 +107,11 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
                   <ErrorMessage>{errors.title?.message}</ErrorMessage>
                 </Box>
 
-                <Grid columns="2" gap="4">
+                <Grid columns={{ initial: "1", sm: "3" }} gap="4">
                   <Box>
                     <Text as="label" size="2" weight="bold" mb="2" display="block">Целевая система</Text>
                     <TextField.Root size="3">
-                      <TextField.Input placeholder="iOS, WebApp, API..." {...register("system")} />
+                      <TextField.Input placeholder="IOS, WebApp, API..." {...register("system")} />
                     </TextField.Root>
                     <ErrorMessage>{errors.system?.message}</ErrorMessage>
                   </Box>
@@ -122,14 +123,24 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
                     <ErrorMessage>{errors.category?.message}</ErrorMessage>
                   </Box>
                   <Box>
-                    <Text as="label" size="2" weight="bold" mb="1" display="block">Дедлайн</Text>
-                    <TextField.Root>
-                      <TextField.Input 
-                        type="date" 
-                        {...register("deadline", { valueAsDate: true })} 
-                      />
-                    </TextField.Root>
-                    <ErrorMessage>{errors.deadline?.message}</ErrorMessage>
+                    <Text as="label" size="2" weight="bold" mb="2" display="block">Критичность</Text>
+                    <Controller
+                      name="criticality"
+                      control={control}
+                      defaultValue={issue?.criticality || "LOW"}
+                      render={({ field }) => (
+                        <Select.Root size="3" onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select.Trigger placeholder="Выберите..." className="w-full" />
+                          <Select.Content>
+                            <Select.Item value="LOW">LOW</Select.Item>
+                            <Select.Item value="MEDIUM">MEDIUM</Select.Item>
+                            <Select.Item value="HIGH">HIGH</Select.Item>
+                            <Select.Item value="CRITICAL">CRITICAL</Select.Item>
+                          </Select.Content>
+                        </Select.Root>
+                      )}
+                    />
+                    <ErrorMessage>{(errors as any).criticality?.message}</ErrorMessage>
                   </Box>
                 </Grid>
 
