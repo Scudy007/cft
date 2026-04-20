@@ -1,7 +1,7 @@
 "use client";
 
 import { Status, Criticality } from "@prisma/client";
-import { Select, Flex, Text, Switch, TextField, Box } from "@radix-ui/themes";
+import { Select, Flex, Text, Switch, TextField } from "@radix-ui/themes";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const IssueFilter = ({ currentUserId }: { currentUserId?: string }) => {
@@ -16,8 +16,7 @@ const IssueFilter = ({ currentUserId }: { currentUserId?: string }) => {
   };
 
   return (
-    <Flex direction="column" gap="4" mb="5">
-      {/* Твои существующие фильтры */}
+    <Flex direction="column" gap="4">
       <Flex gap="4" align="center" wrap="wrap">
         <Select.Root 
           defaultValue={searchParams.get("status") || "ALL"} 
@@ -43,8 +42,9 @@ const IssueFilter = ({ currentUserId }: { currentUserId?: string }) => {
 
         {currentUserId && (
           <Flex align="center" gap="2">
-            <Text size="2">Только мои</Text>
+            <Text size="2" color="gray">Только мои</Text>
             <Switch 
+              size="1"
               checked={searchParams.get("assignedToUserId") === currentUserId}
               onCheckedChange={(checked) => 
                 updateParams("assignedToUserId", checked ? currentUserId : "ALL")
@@ -53,19 +53,18 @@ const IssueFilter = ({ currentUserId }: { currentUserId?: string }) => {
           </Flex>
         )}
       </Flex>
-
-      <Flex gap="4" align="center" wrap="wrap" className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+      <Flex gap="5" align="center" wrap="wrap">
         <Flex align="center" gap="2">
-          <Text size="2" weight="bold">Создано:</Text>
-          <TextField.Root>
+          <Text size="1" weight="bold" color="gray" uppercase>Создано:</Text>
+          <TextField.Root size="1">
             <TextField.Input 
               type="date" 
               defaultValue={searchParams.get("createdAtFrom") || ""}
               onChange={(e) => updateParams("createdAtFrom", e.target.value)}
             />
           </TextField.Root>
-          <Text size="2">—</Text>
-          <TextField.Root>
+          <Text size="1" color="gray">—</Text>
+          <TextField.Root size="1">
             <TextField.Input 
               type="date" 
               defaultValue={searchParams.get("createdAtTo") || ""}
@@ -75,16 +74,16 @@ const IssueFilter = ({ currentUserId }: { currentUserId?: string }) => {
         </Flex>
 
         <Flex align="center" gap="2">
-          <Text size="2" weight="bold">Дедлайн:</Text>
-          <TextField.Root>
+          <Text size="1" weight="bold" color="gray" uppercase>Дедлайн:</Text>
+          <TextField.Root size="1">
             <TextField.Input 
               type="date" 
               defaultValue={searchParams.get("deadlineFrom") || ""}
               onChange={(e) => updateParams("deadlineFrom", e.target.value)}
             />
           </TextField.Root>
-          <Text size="2">—</Text>
-          <TextField.Root>
+          <Text size="1" color="gray">—</Text>
+          <TextField.Root size="1">
             <TextField.Input 
               type="date" 
               defaultValue={searchParams.get("deadlineTo") || ""}
