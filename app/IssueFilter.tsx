@@ -1,7 +1,7 @@
 "use client";
 
 import { Status, Criticality } from "@prisma/client";
-import { Select, Flex, Text, Switch } from "@radix-ui/themes";
+import { Select, Flex, Text, Switch, TextField, Box } from "@radix-ui/themes";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const IssueFilter = ({ currentUserId }: { currentUserId?: string }) => {
@@ -16,40 +16,83 @@ const IssueFilter = ({ currentUserId }: { currentUserId?: string }) => {
   };
 
   return (
-    <Flex gap="4" mb="5" align="center" wrap="wrap">
-      <Select.Root 
-        defaultValue={searchParams.get("status") || "ALL"} 
-        onValueChange={(val) => updateParams("status", val)}
-      >
-        <Select.Trigger placeholder="Статус" />
-        <Select.Content>
-          <Select.Item value="ALL">Все статусы</Select.Item>
-          {Object.values(Status).map(s => <Select.Item key={s} value={s}>{s}</Select.Item>)}
-        </Select.Content>
-      </Select.Root>
+    <Flex direction="column" gap="4" mb="5">
+      {/* Твои существующие фильтры */}
+      <Flex gap="4" align="center" wrap="wrap">
+        <Select.Root 
+          defaultValue={searchParams.get("status") || "ALL"} 
+          onValueChange={(val) => updateParams("status", val)}
+        >
+          <Select.Trigger placeholder="Статус" />
+          <Select.Content>
+            <Select.Item value="ALL">Все статусы</Select.Item>
+            {Object.values(Status).map(s => <Select.Item key={s} value={s}>{s}</Select.Item>)}
+          </Select.Content>
+        </Select.Root>
 
-      <Select.Root 
-        defaultValue={searchParams.get("criticality") || "ALL"} 
-        onValueChange={(val) => updateParams("criticality", val)}
-      >
-        <Select.Trigger placeholder="Критичность" />
-        <Select.Content>
-          <Select.Item value="ALL">Любой риск</Select.Item>
-          {Object.values(Criticality).map(c => <Select.Item key={c} value={c}>{c}</Select.Item>)}
-        </Select.Content>
-      </Select.Root>
+        <Select.Root 
+          defaultValue={searchParams.get("criticality") || "ALL"} 
+          onValueChange={(val) => updateParams("criticality", val)}
+        >
+          <Select.Trigger placeholder="Критичность" />
+          <Select.Content>
+            <Select.Item value="ALL">Любой риск</Select.Item>
+            {Object.values(Criticality).map(c => <Select.Item key={c} value={c}>{c}</Select.Item>)}
+          </Select.Content>
+        </Select.Root>
 
-      {currentUserId && (
+        {currentUserId && (
+          <Flex align="center" gap="2">
+            <Text size="2">Только мои</Text>
+            <Switch 
+              checked={searchParams.get("assignedToUserId") === currentUserId}
+              onCheckedChange={(checked) => 
+                updateParams("assignedToUserId", checked ? currentUserId : "ALL")
+              }
+            />
+          </Flex>
+        )}
+      </Flex>
+
+      <Flex gap="4" align="center" wrap="wrap" className="bg-slate-50 p-3 rounded-lg border border-slate-200">
         <Flex align="center" gap="2">
-          <Text size="2">Только мои</Text>
-          <Switch 
-            checked={searchParams.get("assignedToUserId") === currentUserId}
-            onCheckedChange={(checked) => 
-              updateParams("assignedToUserId", checked ? currentUserId : "ALL")
-            }
-          />
+          <Text size="2" weight="bold">Создано:</Text>
+          <TextField.Root>
+            <TextField.Input 
+              type="date" 
+              defaultValue={searchParams.get("createdAtFrom") || ""}
+              onChange={(e) => updateParams("createdAtFrom", e.target.value)}
+            />
+          </TextField.Root>
+          <Text size="2">—</Text>
+          <TextField.Root>
+            <TextField.Input 
+              type="date" 
+              defaultValue={searchParams.get("createdAtTo") || ""}
+              onChange={(e) => updateParams("createdAtTo", e.target.value)}
+            />
+          </TextField.Root>
         </Flex>
-      )}
+
+        <Flex align="center" gap="2">
+          <Text size="2" weight="bold">Дедлайн:</Text>
+          <TextField.Root>
+            <TextField.Input 
+              type="date" 
+              defaultValue={searchParams.get("deadlineFrom") || ""}
+              onChange={(e) => updateParams("deadlineFrom", e.target.value)}
+            />
+          </TextField.Root>
+          <Text size="2">—</Text>
+          <TextField.Root>
+            <TextField.Input 
+              type="date" 
+              defaultValue={searchParams.get("deadlineTo") || ""}
+              onChange={(e) => updateParams("deadlineTo", e.target.value)}
+            />
+          </TextField.Root>
+        </Flex>
+      </Flex>
     </Flex>
   );
 };

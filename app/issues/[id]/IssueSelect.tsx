@@ -72,7 +72,10 @@ const IssueSelect = ({ issue }: { issue: Issue }) => {
         <Select.Content>
           <Select.Group>
             <Select.Label>Доступные маршруты</Select.Label>
-            <Select.Item value="unassigned">Снять назначение</Select.Item>
+            
+            {currentUserRole === "ADMIN" && (
+              <Select.Item value="unassigned">Снять назначение</Select.Item>
+            )}
             
             {filteredUsers?.map((user) => {
               const isEscalation = getRoleIndex(user.role) > getRoleIndex(currentUserRole);

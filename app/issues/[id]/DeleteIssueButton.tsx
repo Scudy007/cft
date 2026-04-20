@@ -3,10 +3,14 @@ import { Button, AlertDialog, Flex } from "@radix-ui/themes";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 
 const DeleteIssueButton = ({ issueId }: { issueId: number }) => {
   const router = useRouter();
+  const { data: session } = useSession();
   const [error, setError] = useState(false);
+  const currentUserRole = (session?.user as any)?.role;
+  if (currentUserRole !== "ADMIN") return null;
 
   const deleteIssue = async () => {
     try {

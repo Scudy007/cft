@@ -13,6 +13,10 @@ interface Props {
     criticality?: Criticality;
     assignedToUserId?: string;
     orderBy?: string; 
+    createdAtFrom?: string;
+    createdAtTo?: string;
+    deadlineFrom?: string;
+    deadlineTo?: string;
   };
 }
 
@@ -32,12 +36,34 @@ export default async function Home({ searchParams }: Props) {
     orderByObj = { dreadScore: 'desc' };
   }
 
+  const where: any = {
+    status,
+    criticality,
+    assignedToUserId: searchParams.assignedToUserId,
+  };
+
+  if (searchParams.createdAtFrom || searchParams.createdAtTo) {
+    where.createdAt = {};
+    if (searchParams.createdAtFrom) where.createdAt.gte = new Date(searchParams.createdAtFrom);
+    if (searchParams.createdAtTo) {
+      const toDate = new Date(searchParams.createdAtTo);
+      toDate.setHours(23, 59, 59, 999);
+      where.createdAt.lte = toDate;
+    }
+  }
+
+  if (searchParams.deadlineFrom || searchParams.deadlineTo) {
+    where.deadline = {};
+    if (searchParams.deadlineFrom) where.deadline.gte = new Date(searchParams.deadlineFrom);
+    if (searchParams.deadlineTo) {
+      const toDate = new Date(searchParams.deadlineTo);
+      toDate.setHours(23, 59, 59, 999);
+      where.deadline.lte = toDate;
+    }
+  }
+
   const issues = await prisma.issue.findMany({
-    where: {
-      status,
-      criticality,
-      assignedToUserId: searchParams.assignedToUserId,
-    },
+    where,
     orderBy: orderByObj,
     include: { assignedToUser: true },
   });
@@ -51,6 +77,10 @@ export default async function Home({ searchParams }: Props) {
     if (searchParams.status) params.append("status", searchParams.status);
     if (searchParams.criticality) params.append("criticality", searchParams.criticality);
     if (searchParams.assignedToUserId) params.append("assignedToUserId", searchParams.assignedToUserId);
+    if (searchParams.createdAtFrom) params.append("createdAtFrom", searchParams.createdAtFrom);
+    if (searchParams.createdAtTo) params.append("createdAtTo", searchParams.createdAtTo);
+    if (searchParams.deadlineFrom) params.append("deadlineFrom", searchParams.deadlineFrom);
+    if (searchParams.deadlineTo) params.append("deadlineTo", searchParams.deadlineTo);
     params.append("orderBy", order);
     return `/?${params.toString()}`;
   };
@@ -114,15 +144,13 @@ export default async function Home({ searchParams }: Props) {
                   <Table.ColumnHeaderCell className="hidden lg:table-cell">Система</Table.ColumnHeaderCell>
                   <Table.ColumnHeaderCell className="hidden sm:table-cell">Баллы</Table.ColumnHeaderCell>
                   <Table.ColumnHeaderCell className="hidden md:table-cell">Ответственный</Table.ColumnHeaderCell>
-                  {/* НОВАЯ КОЛОНКА */}
-                  <Table.ColumnHeaderCell className="hidden xl:table-cell">Дедлайн</Table.ColumnHeaderCell>
                   <Table.ColumnHeaderCell>Создано</Table.ColumnHeaderCell>
+                  <Table.ColumnHeaderCell>Дедлайн</Table.ColumnHeaderCell>
                 </Table.Row>
               </Table.Header>
 
               <Table.Body>
                 {issues.map((issue) => {
-                  // Логика для определения просрочки
                   const isOverdue = issue.deadline && new Date(issue.deadline) < new Date() && issue.status !== 'CLOSED';
 
                   return (
@@ -162,15 +190,15 @@ export default async function Home({ searchParams }: Props) {
                         <Text size="2">{issue.assignedToUser?.name || "Не назначено"}</Text>
                       </Table.Cell>
 
-                      {/* ЯЧЕЙКА ДЕДЛАЙНА */}
-                      <Table.Cell className="hidden xl:table-cell">
-                        <Text size="2" color={isOverdue ? "red" : "gray"} weight={isOverdue ? "bold" : "regular"}>
-                          {issue.deadline ? new Date(issue.deadline).toLocaleDateString("ru-RU") : "—"}
-                        </Text>
+                      {/* ЯЧЕЙКИ ДАТ */}
+                      <Table.Cell>
+                        <Text size="2">{issue.createdAt.toLocaleDateString("ru-RU")}</Text>
                       </Table.Cell>
 
                       <Table.Cell>
-                        <Text size="2">{issue.createdAt.toLocaleDateString("ru-RU")}</Text>
+                        <Text size="2" color={isOverdue ? "red" : "gray"} weight={isOverdue ? "bold" : "regular"}>
+                          {issue.deadline ? new Date(issue.deadline).toLocaleDateString("ru-RU") : "—"}
+                        </Text>
                       </Table.Cell>
                     </Table.Row>
                   );
