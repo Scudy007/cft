@@ -17,6 +17,7 @@ interface Props {
     createdAtTo?: string;
     deadlineFrom?: string;
     deadlineTo?: string;
+    page?: string;
   };
 }
 
@@ -28,6 +29,9 @@ export default async function Home({ searchParams }: Props) {
   const status = statuses.includes(searchParams.status as Status) ? searchParams.status : undefined;
   const criticalities = Object.values(Criticality);
   const criticality = criticalities.includes(searchParams.criticality as Criticality) ? searchParams.criticality : undefined;
+
+  const pageSize = 8;
+  const currentPage = parseInt(searchParams.page || '1') || 1;
 
   let orderByObj: any = { createdAt: 'desc' };
   if (searchParams.orderBy === 'cvss') {
@@ -65,14 +69,19 @@ export default async function Home({ searchParams }: Props) {
   const issues = await prisma.issue.findMany({
     where,
     orderBy: orderByObj,
+    skip: (currentPage - 1) * pageSize,
+    take: pageSize,
     include: { assignedToUser: true },
   });
+
+  const filteredCount = await prisma.issue.count({ where });
+  const pageCount = Math.ceil(filteredCount / pageSize);
 
   const totalCount = await prisma.issue.count();
   const openCount = await prisma.issue.count({ where: { status: 'OPEN' } });
   const criticalCount = await prisma.issue.count({ where: { criticality: 'CRITICAL' } });
 
-  const buildSortUrl = (order: string) => {
+  const buildUrl = (updates: Record<string, string>) => {
     const params = new URLSearchParams();
     if (searchParams.status) params.append("status", searchParams.status);
     if (searchParams.criticality) params.append("criticality", searchParams.criticality);
@@ -81,7 +90,12 @@ export default async function Home({ searchParams }: Props) {
     if (searchParams.createdAtTo) params.append("createdAtTo", searchParams.createdAtTo);
     if (searchParams.deadlineFrom) params.append("deadlineFrom", searchParams.deadlineFrom);
     if (searchParams.deadlineTo) params.append("deadlineTo", searchParams.deadlineTo);
-    params.append("orderBy", order);
+    if (searchParams.orderBy) params.append("orderBy", searchParams.orderBy);
+    
+    Object.entries(updates).forEach(([key, value]) => {
+      params.set(key, value);
+    });
+
     return `/?${params.toString()}`;
   };
 
@@ -123,13 +137,13 @@ export default async function Home({ searchParams }: Props) {
             <Flex gap="3" align="center" wrap="wrap">
               <Text size="2" weight="bold" color="gray">Сортировка:</Text>
               <Button variant={isDateSort ? 'solid' : 'soft'} asChild className="shadow-sm cursor-pointer">
-                <Link href={buildSortUrl('new')}>По дате</Link>
+                <Link href={buildUrl({ orderBy: 'new', page: '1' })}>По дате</Link>
               </Button>
               <Button color="red" variant={searchParams.orderBy === 'cvss' ? 'solid' : 'soft'} asChild className="shadow-sm cursor-pointer">
-                <Link href={buildSortUrl('cvss')}>По CVSS Score</Link>
+                <Link href={buildUrl({ orderBy: 'cvss', page: '1' })}>По CVSS Score</Link>
               </Button>
               <Button color="orange" variant={searchParams.orderBy === 'dread' ? 'solid' : 'soft'} asChild className="shadow-sm cursor-pointer">
-                <Link href={buildSortUrl('dread')}>По DREAD Score</Link>
+                <Link href={buildUrl({ orderBy: 'dread', page: '1' })}>По DREAD Score</Link>
               </Button>
             </Flex>
           </Flex>
@@ -190,7 +204,6 @@ export default async function Home({ searchParams }: Props) {
                         <Text size="2">{issue.assignedToUser?.name || "Не назначено"}</Text>
                       </Table.Cell>
 
-                      {/* ЯЧЕЙКИ ДАТ */}
                       <Table.Cell>
                         <Text size="2">{issue.createdAt.toLocaleDateString("ru-RU")}</Text>
                       </Table.Cell>
@@ -206,6 +219,40 @@ export default async function Home({ searchParams }: Props) {
               </Table.Body>
             </Table.Root>
           </Box>
+
+          {pageCount > 1 && (
+            <Flex align="center" justify="between" mt="4" className="px-2">
+              <Text size="2" color="gray">
+                Показаны {(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, filteredCount)} из {filteredCount}
+              </Text>
+              
+              <Flex gap="3" align="center">
+                <Button 
+                  variant="soft" 
+                  color="gray"
+                  disabled={currentPage === 1} 
+                  asChild={currentPage > 1}
+                  className={currentPage > 1 ? "cursor-pointer" : ""}
+                >
+                  {currentPage > 1 ? <Link href={buildUrl({ page: (currentPage - 1).toString() })}>Назад</Link> : <span>Назад</span>}
+                </Button>
+                
+                <Text size="2" weight="bold">
+                  Страница {currentPage} из {pageCount}
+                </Text>
+
+                <Button 
+                  variant="soft" 
+                  color="gray"
+                  disabled={currentPage === pageCount} 
+                  asChild={currentPage < pageCount}
+                  className={currentPage < pageCount ? "cursor-pointer" : ""}
+                >
+                  {currentPage < pageCount ? <Link href={buildUrl({ page: (currentPage + 1).toString() })}>Вперед</Link> : <span>Вперед</span>}
+                </Button>
+              </Flex>
+            </Flex>
+          )}
 
           {issues.length === 0 && (
             <Text mt="4" color="gray" align="center" as="p">Задачи по заданным фильтрам не найдены.</Text>
