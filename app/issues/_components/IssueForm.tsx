@@ -50,7 +50,7 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
       category: issue?.category,
       criticality: issue?.criticality || "LOW",
       assignedToUserId: issue?.assignedToUserId,
-      deadline: issue?.deadline ? new Date(issue.deadline).toISOString().split('T')[0] as any : undefined
+      deadline: issue?.deadline ? new Date(issue.deadline).toISOString().split('T')[0] : undefined
     }
   });
 
@@ -64,6 +64,7 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
       const payload = { 
         ...data, 
         ...riskData,
+        deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
         cvssScore: finalCvssScore,
         dreadScore: finalDreadScore
       };
@@ -84,40 +85,42 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
   });
 
   return (
-    <Box className="max-w-7xl mx-auto py-6 px-4" style={{ width: "100%" }}>
+    <Box className="max-w-7xl mx-auto py-8 px-4">
       {error && (
-        <Callout.Root color="red" className="mb-5">
+        <Callout.Root color="red" className="mb-5 shadow-sm">
           <Callout.Text>{error}</Callout.Text>
         </Callout.Root>
       )}
 
-      <form onSubmit={onSubmit} style={{ width: "100%" }}>
+      <form onSubmit={onSubmit}>
         <Grid columns={{ initial: "1", lg: "1.6fr 1fr" }} gap="6" align="start">
           
-          <Flex direction="column" gap="5" style={{ width: "100%" }}>
-            <Card size="4" variant="surface" className="shadow-sm" style={{ width: "100%" }}>
-              <Heading size="5" mb="5" color="gray">1. Информация об инциденте</Heading>
+          <Flex direction="column" gap="5" className="min-w-0">
+            <Card size="4" className="shadow-sm rounded-2xl border-slate-200 dark:border-white/10 bg-white dark:bg-[#0F172A] backdrop-blur-none">
+              <Heading size="5" mb="6" color="gray" className="border-b border-slate-100 dark:border-white/10 pb-4">
+                1. Информация об инциденте
+              </Heading>
               
-              <Flex direction="column" gap="4">
+              <Flex direction="column" gap="5">
                 <Box>
                   <Text as="label" size="2" weight="bold" mb="2" display="block">Название задачи</Text>
-                  <TextField.Root size="3">
+                  <TextField.Root size="3" className="bg-slate-50 dark:bg-slate-900/50">
                     <TextField.Input placeholder="Например: SQL Injection в модуле авторизации" {...register("title")} />
                   </TextField.Root>
                   <ErrorMessage>{errors.title?.message}</ErrorMessage>
                 </Box>
 
-                <Grid columns={{ initial: "1", sm: "3" }} gap="4">
+                <Grid columns={{ initial: "1", sm: "2", md: "4" }} gap="4">
                   <Box>
                     <Text as="label" size="2" weight="bold" mb="2" display="block">Целевая система</Text>
-                    <TextField.Root size="3">
+                    <TextField.Root size="3" className="bg-slate-50 dark:bg-slate-900/50">
                       <TextField.Input placeholder="IOS, WebApp, API..." {...register("system")} />
                     </TextField.Root>
                     <ErrorMessage>{errors.system?.message}</ErrorMessage>
                   </Box>
                   <Box>
                     <Text as="label" size="2" weight="bold" mb="2" display="block">Категория</Text>
-                    <TextField.Root size="3">
+                    <TextField.Root size="3" className="bg-slate-50 dark:bg-slate-900/50">
                       <TextField.Input placeholder="Vulnerability, Bug..." {...register("category")} />
                     </TextField.Root>
                     <ErrorMessage>{errors.category?.message}</ErrorMessage>
@@ -130,7 +133,7 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
                       defaultValue={issue?.criticality || "LOW"}
                       render={({ field }) => (
                         <Select.Root size="3" onValueChange={field.onChange} defaultValue={field.value}>
-                          <Select.Trigger placeholder="Выберите..." className="w-full" />
+                          <Select.Trigger placeholder="Выберите..." className="w-full bg-slate-50 dark:bg-slate-900/50" />
                           <Select.Content>
                             <Select.Item value="LOW">LOW</Select.Item>
                             <Select.Item value="MEDIUM">MEDIUM</Select.Item>
@@ -141,6 +144,14 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
                       )}
                     />
                     <ErrorMessage>{(errors as any).criticality?.message}</ErrorMessage>
+                  </Box>
+                  
+                  <Box>
+                    <Text as="label" size="2" weight="bold" mb="2" display="block">Дедлайн</Text>
+                    <TextField.Root size="3" className="bg-slate-50 dark:bg-slate-900/50">
+                      <TextField.Input type="date" {...register("deadline")} className="w-full text-slate-700 dark:text-slate-200" />
+                    </TextField.Root>
+                    <ErrorMessage>{(errors as any).deadline?.message}</ErrorMessage>
                   </Box>
                 </Grid>
 
@@ -161,8 +172,8 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
             </Card>
           </Flex>
 
-          <Flex direction="column" gap="5" style={{ width: "100%" }}>
-            <Box style={{ width: "100%" }}>
+          <Flex direction="column" gap="5" className="sticky top-24">
+            <Box>
               <Heading size="5" mb="4" ml="1" color="gray">2. Оценка критичности</Heading>
               <RiskCalculator 
                 data={riskData} 
@@ -171,9 +182,9 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
               />
             </Box>
 
-            <Card size="3" variant="surface" className="bg-slate-50 border-slate-200 mt-2" style={{ width: "100%" }}>
-              <Flex direction="column" gap="3">
-                <Text size="2" color="gray">
+            <Card size="3" className="shadow-md rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0F172A] backdrop-blur-none mt-2">
+              <Flex direction="column" gap="4">
+                <Text size="2" color="gray" className="leading-relaxed">
                   Проверьте итоговые баллы перед сохранением. Задача будет доступна всем аналитикам на дашборде.
                 </Text>
                 <Button 
@@ -181,9 +192,11 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
                   size="3" 
                   variant="solid" 
                   color="blue"
-                  className="w-full cursor-pointer shadow-sm hover:shadow-md transition-all"
+                  className="w-full cursor-pointer shadow-sm hover:shadow-md transition-all py-5"
                 >
-                  {issue ? "Сохранить изменения" : "Зарегистрировать уязвимость"}
+                  <Text size="3" weight="bold">
+                    {issue ? "Сохранить изменения" : "Зарегистрировать уязвимость"}
+                  </Text>
                   {isSubmitting && <Spinner />}
                 </Button>
               </Flex>

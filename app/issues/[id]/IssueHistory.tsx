@@ -37,11 +37,11 @@ const IssueHistory = ({ history }: Props) => {
                     )}
                 </Text>
                 {log.comment && (
-                    <Box mt="1" p="2" className="bg-gray-100 rounded border-l-4 border-blue-400">
-                    <Text size="2" italic color="gray">"{log.comment}"</Text>
+                    <Box mt="1" p="2" className="bg-gray-100 dark:bg-indigo-500/10 rounded border-l-4 border-blue-400 dark:border-indigo-500/50 transition-colors">
+                      <Text size="2" italic color="gray">"{log.comment}"</Text>
                     </Box>
                 )}
-                </Box>
+              </Box>
             </Box>
           </Flex>
         </Card>

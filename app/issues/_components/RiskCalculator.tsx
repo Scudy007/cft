@@ -84,7 +84,7 @@ const RiskCalculator = ({ data, onChange, readonly = false }: Props) => {
           ))}
         </Grid>
         
-        <Flex mt="4" p="3" justify="between" align="center" className="bg-blue-50 rounded-lg border border-blue-100">
+        <Flex mt="4" p="3" justify="between" align="center" className="bg-blue-50 dark:bg-blue-500/10 rounded-lg border border-blue-100 dark:border-blue-500/20 transition-colors">
           <Text size="2" weight="bold" color="blue">CVSS Base Score:</Text>
           <Badge size="2" variant="solid" color={getBadgeColor(cvssScore)}>
             {cvssScore.toFixed(1)}
@@ -122,7 +122,7 @@ const RiskCalculator = ({ data, onChange, readonly = false }: Props) => {
             </Box>
           ))}
           
-          <Flex mt="2" p="3" justify="between" align="center" className="bg-indigo-50 rounded-lg border border-indigo-100">
+          <Flex mt="2" p="3" justify="between" align="center" className="bg-indigo-50 dark:bg-indigo-500/10 rounded-lg border border-indigo-100 dark:border-indigo-500/20 transition-colors">
             <Text size="2" weight="bold" color="indigo">Итоговый DREAD Score:</Text>
             <Badge size="2" variant="solid" color={getBadgeColor(dreadScore)}>
               {dreadScore.toFixed(1)}

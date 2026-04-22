@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Box, Flex, Heading, Text, Card, TextField, Select, Badge, Grid } from '@radix-ui/themes';
+import { Box, Flex, Heading, Text, Card, TextField, Select, Badge, Grid, Button } from '@radix-ui/themes';
 
 export interface AuditIssue {
   id: number;
@@ -62,11 +62,18 @@ export default function IssuesPage() {
 
   return (
     <Box className="max-w-7xl mx-auto py-6 px-4">
-      <Flex justify="between" align="center" mb="5">
-        <Heading size="7" color="gray">Рабочая доска (Kanban)</Heading>
-        <Text size="2" color="gray">
-          Найдено задач: <Text weight="bold">{filteredIssues.length}</Text>
-        </Text>
+      <Flex justify="between" align="center" mb="5" wrap="wrap" gap="4">
+        <Heading size="7" color="gray">Рабочая доска</Heading>
+        
+        <Flex align="center" gap="5">
+          <Button asChild size="2" color="indigo" variant="solid" className="cursor-pointer shadow-sm">
+            <Link href="/issues/new">+ Новый аудит</Link>
+          </Button>
+          
+          <Text size="2" color="gray" weight="medium">
+            Найдено задач: <Text weight="bold">{issues.length}</Text>
+          </Text>
+        </Flex>
       </Flex>
 
       <Card size="2" variant="surface" className="mb-6 shadow-sm border border-slate-200 bg-slate-50">
