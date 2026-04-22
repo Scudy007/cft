@@ -2,19 +2,76 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
+
+.dark .bg-white, 
+.dark .bg-slate-50, 
+.dark .bg-slate-100 {
+    background-color: rgba(255, 255, 255, 0.03) !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* --foreground-rgb: 255, 255, 255; */
-    --foreground-rgb: 0, 0, 0;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+.dark .text-slate-700, 
+.dark .text-slate-800, 
+.dark .text-slate-900,
+.dark .text-gray-700 {
+    color: #e2e8f0 !important;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
+.dark .border-slate-200, 
+.dark .border-gray-200,
+.dark .border-indigo-100 {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark .editor-toolbar, 
+.dark .CodeMirror {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #e2e8f0 !important;
+}
+
+.dark .editor-toolbar button {
+    color: #94a3b8 !important;
+}
+
+.dark .editor-toolbar button:hover, 
+.dark .editor-toolbar button.active {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: transparent !important;
+}
+
+.dark .editor-preview {
+    background-color: #0B0F19 !important;
+    color: #e2e8f0 !important;
+}
+
+.dark .recharts-default-tooltip {
+    background-color: #0f172a !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 8px;
+}
+.dark .recharts-tooltip-item, .dark .recharts-tooltip-label {
+    color: #f1f5f9 !important;
+}
+.dark .recharts-pie-sector path {
+    stroke: #0B0F19 !important;
+    stroke-width: 2px;
+}
+.dark .recharts-cartesian-grid line {
+    stroke: rgba(255, 255, 255, 0.05) !important;
+}
+.dark .recharts-text {
+    fill: #94a3b8 !important;
+}
+.dark .recharts-tooltip-cursor {
+    fill: rgba(255, 255, 255, 0.05) !important;
+}
+.dark .rt-Card {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
+    backdrop-filter: blur(10px);
+}
+.CodeMirror-line {
+    word-break: break-all !important;
+    overflow-wrap: break-word !important;
 }
