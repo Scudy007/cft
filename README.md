@@ -121,6 +121,6 @@ npm run dev
 
 * **Дашборд:** ![Dashboard](/public/screenshots/dashboard.png)
 * **Канбан-доска:** ![Kanban](/public/screenshots/kanban.png)
-* **Настройки:** ![Settings](/public/screenshots/settings.png)
+* **Редактирование:** ![Settings](/public/screenshots/issue.png)
 
 </details>
