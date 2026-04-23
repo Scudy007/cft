@@ -57,7 +57,7 @@ npm install
 ### 3. Подготовка базы данных
 Если вы разворачиваете проект на чистой системе (например, Ubuntu/Kali Linux), сначала установите СУБД и создайте локальную базу данных:
 
-```env
+```bash
 sudo apt update
 sudo apt install -y postgresql postgresql-contrib
 
@@ -75,7 +75,7 @@ cp .env.example .env
 ```
 
 Откройте созданный файл .env и укажите данные для подключения к вашей базе:
-```bash
+```env
 # Строка подключения к PostgreSQL (замените на свои данные, если нужно)
 DATABASE_URL="postgresql://sec_user:12345@localhost:5432/secaudit"
 
@@ -119,8 +119,8 @@ npm run dev
 <summary>Нажмите, чтобы развернуть скриншоты</summary>
 <br>
 
-* **Дашборд:** `![Dashboard](/public/screenshots/dashboard.png)`
-* **Канбан-доска:** `![Kanban](/public/screenshots/kanban.png)`
-* **Настройки:** `![Settings](/public/screenshots/settings.png)`
+* **Дашборд:** ![Dashboard](/public/screenshots/dashboard.png)
+* **Канбан-доска:** ![Kanban](/public/screenshots/kanban.png)
+* **Настройки:** ![Settings](/public/screenshots/settings.png)
 
 </details>
